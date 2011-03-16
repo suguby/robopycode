@@ -1,0 +1,4 @@
+Проект предназначен для обучения языку Python >=2.6.6 на примере игр.
+Основан на PyGame http://www.pygame.org
+Цель - порт robocode на Python
+
