@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/robopycode2.iml" filepath="$PROJECT_DIR$/.idea/robopycode2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/robopycode.iml" filepath="$PROJECT_DIR$/.idea/robopycode.iml" />
     </modules>
   </component>
 </project>
