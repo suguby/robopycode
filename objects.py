@@ -13,6 +13,7 @@ class GameObject():
     __name__ = 'GameObject'
     _objects_count = 0
     states = ['stopped', 'turning', 'moving']
+    container = None
 
     def __init__(self, pos, revolvable=True):
         self.coord = geometry.Point(pos)
@@ -61,7 +62,7 @@ class GameObject():
 
     def turn_to(self, arg1):
         """ Повернуться к обьекту / в указаном направлении """
-        if isinstance(arg1, GameObject) or arg.__class__ == geometry.Point:
+        if isinstance(arg1, GameObject) or arg1.__class__ == geometry.Point:
             self.vector = geometry.Vector(self, arg1, 0)
         elif arg1.__class__ == int or arg1.__class__ == float:
             direction = arg1
