@@ -83,18 +83,18 @@ class MshpSprite(pygame.sprite.DirtySprite):
             #   (self.rect.width,0), 1)
             #~ pygame.draw.line(self.image, (0,0,0), (0,0),
             #   (0,self.rect.height), 1)
+        if self._selected:
+            outline_rect = pygame.Rect(0, 0,
+                                       self.rect.width, self.rect.height)
+            #~ print outline_rect
+            pygame.draw.rect(self.image,
+                             self._debug_color, outline_rect, 1)
         if common._debug:
             if self.type() == 'Tank':
                 id_image = self._id_font.render(str(self._id),
                                                 0,
                                                 self._debug_color)
                 self.image.blit(id_image, (5, 5))
-            if self._selected:
-                outline_rect = pygame.Rect(0, 0,
-                                           self.rect.width, self.rect.height)
-                #~ print outline_rect
-                pygame.draw.rect(self.image,
-                                 self._debug_color, outline_rect, 1)
             if hasattr(self, '_detected_by') and self._detected_by:
                 radius = 0
                 for obj in self._detected_by:
@@ -118,7 +118,7 @@ class UserInterface:
 
         pygame.init()
         SCREENRECT = Rect((0, 0),
-                          (constants.field_width, constants.field_width))
+                          (constants.field_width, constants.field_height))
         self.screen = pygame.display.set_mode(SCREENRECT.size)
         pygame.display.set_caption(name)
 
