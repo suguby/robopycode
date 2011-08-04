@@ -43,7 +43,7 @@ class Point():
     #~ int_y = property(lambda self: round(self.y),
     # doc="Округленная до пиксела координата Y")
 
-    def __init__(self, arg1=0, arg2=0):
+    def __init__(self, arg1, arg2=None):
         """Создать точку. Можно создать из другой точки, из списка/тьюпла
         или из конкретных координат"""
         if hasattr(arg1, 'coord'):
