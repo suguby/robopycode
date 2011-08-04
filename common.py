@@ -7,7 +7,6 @@ import geometry
 
 _debug = False
 
-
 class Logger:
 
     def debug(self, pattern, *args):
@@ -15,7 +14,7 @@ class Logger:
             pattern = str(pattern)
             try:
                 print pattern % args
-            except:
+            except TypeError:
                 print pattern, ' '.join([str(arg) for arg in args])
 
 log = Logger()
