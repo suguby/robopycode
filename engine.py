@@ -84,6 +84,7 @@ class Scene:
                 obj._events.put(radar_event)
             obj._proceed_events()
             #~ print obj._id, obj._detected_by
+#            obj.armor += 1
             obj.game_step()
 
         for obj in self.shots + self.exploisons:
@@ -106,6 +107,12 @@ class Scene:
                         # координаты экранные
                         obj._selected = not obj._selected
                         obj.debug('select %s', obj)
+#                        self.selected = obj
+                    elif not common._debug:
+                        # возможно выделение множества танков
+                        # только на режиме отладки
+                        obj._selected = False
+
             self.mouse_buttons = self.ui.mouse_buttons
 
             # переключение режима отладки
@@ -118,12 +125,13 @@ class Scene:
                 common._debug = not common._debug
                 self.ui.debug = common._debug
 
+
             # шаг игры, если надо
             if not self.hold_state or self.ui.one_step:
                 self._step += 1
                 self.game_step()
                 if common._debug:
-                    common.log.debug('%s %s %s', '=' * 20, self._step, '=' * 10)
+                    common.log.debug('=' * 20, self._step, '=' * 10)
 
             # отрисовка
             self.ui.draw()
