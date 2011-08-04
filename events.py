@@ -4,8 +4,8 @@
 
 class GameEvent:
 
-    def __init__(self, event_objs=[]):
-        self._event_objs = event_objs
+    def __init__(self, event_objs=None):
+        self._event_objs = event_objs or []
 
     def get_event_objects(self):
         return self._event_objs
