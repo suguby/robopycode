@@ -249,11 +249,11 @@ class Fps(pygame.sprite.DirtySprite):
 
 def load_image(name, colorkey=None):
     """Загрузить изображение из файла"""
-    fullname = os.path.join(constants.__path__, 'data', name)
+    fullname = os.path.join(constants.data_path, name)
     try:
         image = pygame.image.load(fullname)
     except pygame.error, message:
-        print "Cannot load image:", name
+        print "Cannot load image:", fullname
         raise SystemExit(message)
         #image = image.convert()
     if colorkey is not None:

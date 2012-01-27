@@ -19,5 +19,4 @@ __all__ = [
     'common.py'
 ]
 
-constants.__path__ = __path__[0]
 version = '0.2.0'

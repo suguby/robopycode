@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+
 # Scene constants
 field_width = 640
 field_height = 480
@@ -24,3 +26,5 @@ max_fps = 60
 #max_fps = 0
 resolution = (field_width, field_height)
 images_path = ''
+# TODO сделать определение пути к данным пакета более красиво
+data_path = os.path.join(*(['/']+__file__.split('/')[:-1]+['data']))
