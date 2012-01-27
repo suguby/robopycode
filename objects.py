@@ -140,7 +140,7 @@ class GameObject():
             self.coord.add(self.vector)
             if self.coord.near(self.target_coord):
                 self.stop()
-                self._events.put(events.EventStoppedAtTargetPoint())
+                self._events.put(events.EventStoppedAtTargetPoint(self.target_coord))
         # boundary_check
         left_ro = self._runout(self.coord.x)
         if left_ro:
@@ -310,7 +310,7 @@ class Tank(GameObject, user_interface.MshpSprite):
         """событие: остановка"""
         pass
 
-    def stopped_at_target_point(self):
+    def stopped_at_target_point(self, point):
         """событие: остановка у цели"""
         pass
 

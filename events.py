@@ -26,7 +26,7 @@ class EventStopped(GameEvent):
 class EventStoppedAtTargetPoint(GameEvent):
 
     def handle(self, obj):
-        obj.stopped_at_target_point()
+        obj.stopped_at_target_point(self._event_objs)
 
 
 class EventGunReloaded(GameEvent):
