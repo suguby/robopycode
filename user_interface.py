@@ -32,7 +32,8 @@ class MshpSprite(pygame.sprite.DirtySprite):
             self._layer = _max_layers
         if self._layer < 0:
             self._layer = 0
-        self.sprite_containers = self.sprite_containers, _sprites_by_layer[self._layer]
+        self.sprite_containers = (self.sprite_containers,
+                                  _sprites_by_layer[self._layer])
         # , self.sprite_container
         pygame.sprite.Sprite.__init__(self, self.sprite_containers)
 
@@ -78,7 +79,8 @@ class MshpSprite(pygame.sprite.DirtySprite):
             max_heat = float(constants.tank_gun_heat_after_fire)
             bar_px = int(((max_heat - self.gun.heat)
                           / max_heat) * self.rect.width)
-            pygame.draw.line(self.image, (232, 129, 31), (0, 5), (bar_px, 5), 2)
+            pygame.draw.line(self.image, (232, 129, 31), (0, 5),
+                (bar_px, 5), 2)
             #~ pygame.draw.line(self.image, (0,0,0), (0,0),
             #   (self.rect.width,0), 1)
             #~ pygame.draw.line(self.image, (0,0,0), (0,0),

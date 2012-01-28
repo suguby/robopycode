@@ -125,7 +125,6 @@ class Scene:
                 common._debug = not common._debug
                 self.ui.debug = common._debug
 
-
             # шаг игры, если надо
             if not self.hold_state or self.ui.one_step:
                 self._step += 1

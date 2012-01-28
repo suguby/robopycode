@@ -7,6 +7,7 @@ import geometry
 
 _debug = False
 
+
 class Logger:
 
     def debug(self, pattern, *args):
@@ -18,6 +19,7 @@ class Logger:
                 print pattern, ' '.join([str(arg) for arg in args])
 
 log = Logger()
+
 
 def random_point():
     return geometry.Point(random.randint(5, constants.field_width - 5),

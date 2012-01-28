@@ -8,6 +8,7 @@ import user_interface
 import constants
 import Queue
 
+
 class GameObject():
     radius = 1
     __name__ = 'GameObject'
@@ -101,7 +102,8 @@ class GameObject():
         if speed > constants.tank_speed:
             speed = constants.tank_speed
         self.target_coord = target
-#        self.debug('before vector %s %s %s', self.coord, self.target_coord, speed)
+#        self.debug('before vector %s %s %s',
+#        self.coord, self.target_coord, speed)
         self.vector = geometry.Vector(self.coord, self.target_coord, speed)
 #        self.debug('after vector %s', self)
         self._need_moving = True
@@ -140,7 +142,8 @@ class GameObject():
             self.coord.add(self.vector)
             if self.coord.near(self.target_coord):
                 self.stop()
-                self._events.put(events.EventStoppedAtTargetPoint(self.target_coord))
+                self._events.put(events.EventStoppedAtTargetPoint(
+                    self.target_coord))
         # boundary_check
         left_ro = self._runout(self.coord.x)
         if left_ro:

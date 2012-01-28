@@ -27,4 +27,4 @@ max_fps = 60
 resolution = (field_width, field_height)
 images_path = ''
 # TODO сделать определение пути к данным пакета более красиво
-data_path = os.path.join(*(['/']+__file__.split('/')[:-1]+['data']))
+data_path = os.path.join(*(['/'] + __file__.split('/')[:-1] + ['data']))

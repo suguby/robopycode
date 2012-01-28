@@ -3,7 +3,9 @@
 
 import engine
 import objects
+import geometry
 from common import random_point
+
 
 class WadTank(objects.Tank):
     _img_file_name = 'tank_green.png'
@@ -13,7 +15,7 @@ class WadTank(objects.Tank):
 
     def run_away(self, obj):
         to_obj_vector = geometry.Vector(self, obj)
-        self.move(to_obj_vector.angle + 180, speed = 5)
+        self.move(to_obj_vector.angle + 180, speed=5)
 
     def to_hunt(self, target_candidate):
         self.target = target_candidate
@@ -49,7 +51,6 @@ class WadTank(objects.Tank):
                     self.state = 'search'
                     self.move_at(random_point())
 
-
     def born(self):
         self.state = 'search'
         self.target = None
@@ -80,23 +81,11 @@ class WadTank(objects.Tank):
                 self.target = None
                 self.move_at(random_point())
 
-
     def target_destroyed(self):
         if self.state == 'hunt':
             self.state = 'search'
         self.target = None
         self.move_at(random_point())
-
-    #    def hitted(self):
-    #        self.debug("hitted state %s", self.state)
-    #        if self.armor < 10:
-    #            self.state = 'escape'
-    #            self.move_at(random_point())
-    #        if self.state == 'search':
-    #        elif self.state == 'hunt':
-    #            pass
-    #        else:
-    #            self.move_at(random_point())
 
     def collided_with(self, obj):
         self.debug("collided_with state %s", self.state)
@@ -106,11 +95,11 @@ class WadTank(objects.Tank):
             self.move_at(obj)
 
     def in_tank_radar_range(self, objects):
-        self.debug("in_tank_radar_range state %s target", self.state, self.target)
+        self.debug("in_tank_radar_range state %s target",
+            self.state, self.target)
         self.make_decision(objects)
 
 scene = engine.Scene('Tanks world')
 tanks = [WadTank() for i in range(5)]
 targets = [objects.Target() for i in range(10)]
 scene.go()
-
