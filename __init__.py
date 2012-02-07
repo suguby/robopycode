@@ -16,7 +16,7 @@ __all__ = [
     'geometry',
     'objects',
     'user_interface',
-    'common.py'
+    'common'
 ]
 
 version = '0.2.0'
