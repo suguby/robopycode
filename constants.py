@@ -25,6 +25,4 @@ background_color = (85, 107, 47)
 max_fps = 60
 #max_fps = 0
 resolution = (field_width, field_height)
-images_path = ''
-# TODO сделать определение пути к данным пакета более красиво
-data_path = os.path.join(*(['/'] + __file__.split('/')[:-1] + ['data']))
+data_path = os.path.join(os.path.dirname(__file__), 'data')
