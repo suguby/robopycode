@@ -11,28 +11,20 @@ def from_screen(coord):
 
 
 def normalise_angle(a):
-    #~ if a >= 360:
-        #~ return a%360
-    #~ if a < 0:
-        #~ return abs(a)%360 + 360
+    """Нормализировать угол - д.б. < 360"""
     return a % 360
 
 
 def get_arctan(dy, dx):
+    """Определить угол в градусах по дельтам"""
     out = atan2(dy, dx) / pi * 180
     # Unlike atan(y/x), the signs of both x and y are considered.
     return normalise_angle(out)
 
 
-#~ _tangens_cache = {}
 def get_tangens(angle):
+    """Определеить тангенс угла в градусах"""
     return tan(angle / 180.0 * pi)
-    #~ angle = int(angle)
-    #~ if angle in _tangens_cache:
-        #~ return _tangens_cache[angle]
-    #~ val = tan(angle / 180.0 * pi)
-    #~ _tangens_cache[angle] = val
-    #~ return val
 
 
 class Point():
@@ -47,14 +39,18 @@ class Point():
         """Создать точку. Можно создать из другой точки, из списка/тьюпла
         или из конкретных координат"""
         if hasattr(arg1, 'coord'):
+            # у объекта есть координата (типа Point)
             self.x = arg1.coord.x
             self.y = arg1.coord.y
         elif hasattr(arg1, 'x'):
+            # у объекта есть атрибуты x и y (это Point)
             self.x = arg1.x
             self.y = arg1.y
         elif type(arg1) == type([]) or type(arg1) == type(()):
+            # список/тюпл координат
             self.x, self.y = arg1
         elif type(arg1) == type(42) or type(arg1) == type(27.0):
+            # просто две координаты
             self.x, self.y = arg1, arg2
         else:
             raise Exception(self.__init__.__doc__)
@@ -70,6 +66,7 @@ class Point():
         self.y += vector.dy
 
     def __add__(self, vector):
+        """ операнд сложения точки и вектора """
         if vector.__class__ != Vector:
             raise Exception('point will add only vector')
         return Point(self.x + vector.dx,
@@ -81,6 +78,7 @@ class Point():
         self.y -= vector.dy
 
     def __sub__(self, vector):
+        """ операнд вычитания вектора из точки """
         if vector.__class__ != Vector:
             raise Exception('point will sub only vector')
         return Point(self.x - vector.dx,
@@ -97,8 +95,6 @@ class Point():
 
     def __eq__(self, point2):
         """Сравнение двух точек на равенство целочисленных координат"""
-        #~ if point2:
-            #~ print self, point2
         if  int(self.x) == int(point2.x) and int(self.y) == int(point2.y):
             return True
         return False
@@ -112,10 +108,12 @@ class Point():
         return str(self)
 
     def __iter__(self):
+        """Итерация по значениям координат """
         yield self.x
         yield self.y
 
     def __getitem__(self, ind):
+        """индексация точки - отдать координату по индексу """
         if ind:
             return self.y
         return self.x
@@ -146,7 +144,7 @@ class Vector():
             self.dy = float(point2.y - point1.y)
             self._determine_module()
             self._determine_angle()
-            if arg3 != None:  # указан модуль - ограничиваем (None не убирать!)
+            if not (arg3 is None):  # указан модуль - ограничиваем
                 module = arg3
                 if self.module:
                     self.dx *= module / self.module
