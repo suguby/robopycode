@@ -21,6 +21,7 @@ class Logger:
 log = Logger()
 
 
-def random_point():
-    return geometry.Point(random.randint(5, constants.field_width - 5),
-                          random.randint(5, constants.field_height - 5))
+def random_point(object_radius=32):
+    frame = object_radius // 2 + 1
+    return geometry.Point(random.randint(frame, constants.field_width - frame),
+                          random.randint(frame, constants.field_height - frame))

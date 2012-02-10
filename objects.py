@@ -37,7 +37,7 @@ class GameObject():
 
         GameObject._objects_count += 1
         self._id = GameObject._objects_count
-        self.debug('%s', self)
+        self.debug('born %s', self)
 
     def __str__(self):
         return 'obj(%s, %s %s cour=%.1f %s)' \
@@ -249,7 +249,7 @@ class Tank(GameObject, user_interface.MshpSprite):
     def __init__(self, pos=None):
         """создать танк в указанной точке экрана"""
         if not pos:
-            pos = common.random_point()
+            pos = common.random_point(self.radius)
         GameObject.__init__(self, pos, revolvable=True)
         user_interface.MshpSprite.__init__(self)
         self.gun = Gun(self)
