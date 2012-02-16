@@ -11,6 +11,7 @@ field_height = 480
 tank_speed = 5
 tank_turn_speed = 5
 tank_max_armor = 100
+tank_armor_renewal_rate = 0.07
 tank_gun_heat_after_fire = 80
 tank_radar_range = 200
 tank_radar_angle = 40

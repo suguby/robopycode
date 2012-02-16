@@ -253,12 +253,18 @@ class Tank(GameObject, user_interface.MshpSprite):
         GameObject.__init__(self, pos, angle=angle)
         user_interface.MshpSprite.__init__(self)
         self.gun = Gun(self)
-        self.armor = constants.tank_max_armor
+        self._armor = float(constants.tank_max_armor)
         self.explosion = None
         self._events.put(events.EventBorn())
 
+    @property
+    def armor(self):
+        return int(self._armor)
+
     def game_step(self):
         """Внутренняя функция для обновления переменных состояния"""
+        if self._armor < constants.tank_max_armor:
+            self._armor += constants.tank_armor_renewal_rate
         self.gun.game_step()
         self._update_explosion()
         GameObject.game_step(self)
@@ -297,10 +303,10 @@ class Tank(GameObject, user_interface.MshpSprite):
 
     def hit(self, shot):
         """ попадание в наш танк снаряда """
-        self.armor -= shot.power
+        self._armor -= shot.power
         self._events.put(events.EventHit())
         #~ print self._id, 'hited! armor now ', self.armor
-        if self.armor <= 0:
+        if self._armor <= 0:
             if shot.owner:  # еще не был убит
                 shot.owner._events.put(events.EventTargetDestroyed())
             self.detonate()
