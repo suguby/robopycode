@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import engine
-import objects
-import geometry
+from engine import Scene
+from objects import Tank, Target, StaticTarget
+from geometry import Vector
 from common import random_point
 
 
-class WadTank(objects.Tank):
+class WadTank(Tank):
     _img_file_name = 'tank_blue.png'
 
     def turn_around(self):
         self.turn_to(self.course + 180)
 
     def run_away(self, obj):
-        to_obj_vector = geometry.Vector(self, obj)
+        to_obj_vector = Vector(self, obj)
         self.move(to_obj_vector.angle + 180, speed=5)
 
     def to_search(self):
@@ -87,7 +87,14 @@ class WadTank(objects.Tank):
             self.state, self.target)
         self.make_decision(objects)
 
-scene = engine.Scene('Tanks world')
+scene = Scene('Tanks world')
 tanks = [WadTank() for i in range(5)]
-targets = [objects.Target() for i in range(10)]
+targets = [Target() for i in range(10)]
+static_targets = [
+    StaticTarget((20,20), 90),
+    StaticTarget((620,460), -90)
+]
+for st in static_targets:
+    st.auto_fire()
+
 scene.go()

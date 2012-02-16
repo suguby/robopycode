@@ -16,11 +16,11 @@ class GameObject():
     states = ['stopped', 'turning', 'moving']
     container = None
 
-    def __init__(self, pos, revolvable=True):
+    def __init__(self, pos, revolvable=True, angle=0):
         self.coord = geometry.Point(pos)
         self.target_coord = geometry.Point(0, 0)
 
-        self.vector = geometry.Vector(0, 0)
+        self.vector = geometry.Vector(angle, 0)
         self.course = self.vector.angle
         self.shot = False
         self.revolvable = revolvable
@@ -246,11 +246,11 @@ class Tank(GameObject, user_interface.MshpSprite):
     _layer = 2
     radius = 32  # collision detect
 
-    def __init__(self, pos=None):
+    def __init__(self, pos=None, angle=0):
         """создать танк в указанной точке экрана"""
         if not pos:
             pos = common.random_point(self.radius)
-        GameObject.__init__(self, pos, revolvable=True)
+        GameObject.__init__(self, pos, angle=angle)
         user_interface.MshpSprite.__init__(self)
         self.gun = Gun(self)
         self.armor = constants.tank_max_armor
@@ -341,7 +341,14 @@ class Tank(GameObject, user_interface.MshpSprite):
 class StaticTarget(Tank):
     __name__ = 'StaticTarget'
     _img_file_name = 'tank_red.png'
+    auto_fire = False
 
+    def auto_fire(self):
+        self.auto_fire = True
+
+    def gun_reloaded(self):
+        if self.auto_fire:
+            self.fire()
 
 class Target(Tank):
     __name__ = 'Target'
