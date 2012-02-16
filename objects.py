@@ -341,10 +341,10 @@ class Tank(GameObject, user_interface.MshpSprite):
 class StaticTarget(Tank):
     __name__ = 'StaticTarget'
     _img_file_name = 'tank_red.png'
-    auto_fire = False
 
-    def auto_fire(self):
-        self.auto_fire = True
+    def __init__(self, pos=None, angle=0, auto_fire=False):
+        Tank.__init__(self, pos=pos, angle=angle)
+        self.auto_fire = auto_fire
 
     def gun_reloaded(self):
         if self.auto_fire:

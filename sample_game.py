@@ -91,10 +91,8 @@ scene = Scene('Tanks world')
 tanks = [WadTank() for i in range(5)]
 targets = [Target() for i in range(10)]
 static_targets = [
-    StaticTarget((20,20), 90),
-    StaticTarget((620,460), -90)
+    StaticTarget(pos=(20,20), angle=90, auto_fire=True),
+    StaticTarget(pos=(620,460), angle=-90, auto_fire=True)
 ]
-for st in static_targets:
-    st.auto_fire()
 
 scene.go()
