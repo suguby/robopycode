@@ -135,7 +135,7 @@ class Scene:
             # отрисовка
             self.ui.draw()
 
-        print 'Thanks for playing robopycode! See u in the future. :)'
+        print 'Thank for playing robopycode! See you in the future :)'
 
 ############################################################ утилиты ##########
 
