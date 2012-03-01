@@ -130,6 +130,7 @@ class GameObject():
                     self._state = 'moving'
                 else:
                     self._state = 'stopped'
+                    self._events.put(events.EventStopped())
             else:
                 if -180 < delta < 0 or delta > 180:
                     self.course -= constants.tank_turn_speed
