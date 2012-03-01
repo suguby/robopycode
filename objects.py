@@ -7,6 +7,7 @@ import geometry
 import user_interface
 import constants
 import Queue
+from random import randint
 
 
 class GameObject():
@@ -16,10 +17,12 @@ class GameObject():
     states = ['stopped', 'turning', 'moving']
     container = None
 
-    def __init__(self, pos, revolvable=True, angle=0):
+    def __init__(self, pos, revolvable=True, angle=None):
         self.coord = geometry.Point(pos)
         self.target_coord = geometry.Point(0, 0)
 
+        if angle is None:
+            angle = randint(0, 360)
         self.vector = geometry.Vector(angle, 0)
         self.course = self.vector.angle
         self.shot = False
@@ -247,7 +250,7 @@ class Tank(GameObject, user_interface.MshpSprite):
     _layer = 2
     radius = 32  # collision detect
 
-    def __init__(self, pos=None, angle=0):
+    def __init__(self, pos=None, angle=None):
         """создать танк в указанной точке экрана"""
         if not pos:
             pos = common.random_point(self.radius)
@@ -349,7 +352,7 @@ class StaticTarget(Tank):
     __name__ = 'StaticTarget'
     _img_file_name = 'tank_red.png'
 
-    def __init__(self, pos=None, angle=0, auto_fire=False):
+    def __init__(self, pos=None, angle=None, auto_fire=False):
         Tank.__init__(self, pos=pos, angle=angle)
         self.auto_fire = auto_fire
 
