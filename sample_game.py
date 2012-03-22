@@ -83,15 +83,18 @@ class WadTank(Tank):
             self.make_decision(objects=[obj])
 
     def in_tank_radar_range(self, objects):
+        for obj in objects:
+            self.debug("in radar obj with armor %s", obj.armor)
         self.debug("in_tank_radar_range state %s target",
             self.state, self.target)
         self.make_decision(objects)
 
 scene = Scene('Tanks world')
 tanks = [WadTank() for i in range(5)]
-targets = [Target() for i in range(10)]
+targets = [Target() for i in range(7)]
+targets = [Target(auto_fire=True) for i in range(3)]
 static_targets = [
-    StaticTarget(pos=(20,20), angle=90, auto_fire=True),
+    StaticTarget(pos=(20,20), angle=90),
     StaticTarget(pos=(620,460), angle=-90, auto_fire=True)
 ]
 
