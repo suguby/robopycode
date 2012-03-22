@@ -63,8 +63,9 @@ class Scene:
                     #~ dy = right.coord.y - left.coord.y
                     if _in_radar_fork(left, right):
                         left.debug("see %s", right._id)
-                        left._radar_detected_objs.append(right)
-                        right._detected_by.append(left)
+                        if right.armor > 0:
+                            left._radar_detected_objs.append(right)
+                            right._detected_by.append(left)
                     #~ if _in_radar_fork(right, -dx, -dy):
                         #~ right.debug("see %s", left._id)
                         #~ right._radar_detected_objs.append(left)
