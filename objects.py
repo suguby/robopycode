@@ -364,10 +364,6 @@ class Target(Tank):
     __name__ = 'Target'
     _img_file_name = 'tank_red.png'
 
-    def __init__(self, pos=None, angle=None, auto_fire=False):
-        Tank.__init__(self, pos=pos, angle=angle)
-        self.auto_fire = auto_fire
-
     def born(self):
         self.move_at(common.random_point())
 
@@ -377,8 +373,7 @@ class Target(Tank):
 
     def gun_reloaded(self):
         self.debug("gun_reloaded")
-        if self.auto_fire:
-            self.fire()
+        self.fire()
 
     def collided_with(self, obj):
         self.debug("collided_with %s", obj._id)
