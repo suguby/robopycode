@@ -42,6 +42,8 @@ class GameObject():
         self._id = GameObject._objects_count
         self.debug('born %s', self)
 
+        self._heartbeat_tics = 5
+
     def __str__(self):
         return 'obj(%s, %s %s cour=%.1f %s)' \
                 % (self._id, self.coord, self.vector,
@@ -166,6 +168,12 @@ class GameObject():
             self.coord.y -= top_ro + 1
             self.stop()
 
+        self._heartbeat_tics -= 1
+        if not self._heartbeat_tics:
+            self.hearbeat()
+            self._heartbeat_tics = 5
+
+
     def _runout(self, coordinate, hight_bound=None):
         """проверка выхода за границы игрового поля"""
         if hight_bound:
@@ -212,6 +220,9 @@ class GameObject():
         """событие: остановка у цели"""
         pass
 
+    def hearbeat(self):
+        """событие: пульсация жизни"""
+        pass
 
 class Gun:
     __name__ = 'Gun'
@@ -364,6 +375,10 @@ class Target(Tank):
     __name__ = 'Target'
     _img_file_name = 'tank_red.png'
 
+    def __init__(self, pos=None, angle=None, auto_fire=False):
+        Tank.__init__(self, pos=pos, angle=angle)
+        self.auto_fire = auto_fire
+
     def born(self):
         self.move_at(common.random_point())
 
@@ -373,7 +388,8 @@ class Target(Tank):
 
     def gun_reloaded(self):
         self.debug("gun_reloaded")
-        self.fire()
+        if self.auto_fire:
+            self.fire()
 
     def collided_with(self, obj):
         self.debug("collided_with %s", obj._id)
