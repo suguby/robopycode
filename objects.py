@@ -41,8 +41,7 @@ class GameObject():
 
         # container - это список, обьявлен на уровне порожденного класса,
         # инициализируется в Scene
-        if self.container:
-            self.container.append(self)
+        self.container.append(self)
 
         GameObject._objects_count += 1
         self._id = GameObject._objects_count
