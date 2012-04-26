@@ -148,7 +148,7 @@ class GameObject():
         self._need_moving = False
         self._events.put(events.EventStopped())
 
-    def game_step(self):
+    def _game_step(self):
         """
             Internal function
 
@@ -284,7 +284,7 @@ class Gun:
         self.heat = 8
         self._state = 'reloading'
 
-    def game_step(self):
+    def _game_step(self):
         """
             Internal function
 
@@ -343,7 +343,7 @@ class Tank(GameObject, user_interface.MshpSprite):
     def armor(self):
         return int(self._armor)
 
-    def game_step(self):
+    def _game_step(self):
         """
             Internal function to update the state variables
 
@@ -351,9 +351,9 @@ class Tank(GameObject, user_interface.MshpSprite):
         """
         if self._armor < constants.tank_max_armor:
             self._armor += constants.tank_armor_renewal_rate
-        self.gun.game_step()
+        self.gun._game_step()
         self._update_explosion()
-        GameObject.game_step(self)
+        GameObject._game_step(self)
 
     def _update_explosion(self):
         """
@@ -559,14 +559,14 @@ class Shot(GameObject, user_interface.MshpSprite):
             self.owner.shot = None
             self.owner = None
 
-    def game_step(self):
+    def _game_step(self):
         self.debug('%s', self)
         self.life -= 1
         if not self.life or not self._state == 'moving':
             self.kill()
             self.owner.shot = None
             self.container.remove(self)
-        GameObject.game_step(self)
+        GameObject._game_step(self)
 
 
 class Explosion(GameObject, user_interface.MshpSprite):
@@ -592,7 +592,7 @@ class Explosion(GameObject, user_interface.MshpSprite):
         self.owner._update_explosion()
         self.life = self.defaultlife
 
-    def game_step(self):
+    def _game_step(self):
         self.life -= 1
         self.image = self.images[self.life // self.animcycle % 2]
         if self.life <= 0:
@@ -600,7 +600,7 @@ class Explosion(GameObject, user_interface.MshpSprite):
             self.container.remove(self)
             self.owner.explosion = None
             self.owner = None
-        GameObject.game_step(self)
+        GameObject._game_step(self)
 
 
 class SmallExplosion(Explosion):
