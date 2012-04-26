@@ -6,38 +6,45 @@ from math import *
 
 
 def from_screen(coord):
-    """Преобразовать координаты из экранных"""
+    """
+        Convert coordinates from the screen
+    """
     return coord[0], constants.field_height - coord[1]
 
 
 def normalise_angle(a):
-    """Нормализировать угол - д.б. < 360"""
+    """
+        Make angle in 0 < x < 360
+    """
     return a % 360
 
 
 def get_arctan(dy, dx):
-    """Определить угол в градусах по дельтам"""
+    """
+        Determine the angle in degrees for the twins
+    """
     out = atan2(dy, dx) / pi * 180
     # Unlike atan(y/x), the signs of both x and y are considered.
     return normalise_angle(out)
 
 
 def get_tangens(angle):
-    """Определеить тангенс угла в градусах"""
+    """
+        Determine the tangent of the angle in degrees
+    """
     return tan(angle / 180.0 * pi)
 
 
 class Point():
-    """Класс точки на экране"""
-
-    #~ int_x = property(lambda self: round(self.x),
-    # doc="Округленная до пиксела координата X")
-    #~ int_y = property(lambda self: round(self.y),
-    # doc="Округленная до пиксела координата Y")
+    """
+        Screen point
+    """
 
     def __init__(self, arg1, arg2=None):
-        """Создать точку. Можно создать из другой точки, из списка/тьюпла
-        или из конкретных координат"""
+        """
+            Create a point. You can create from a different point,
+            from the list/tuple or of the specific coordinates
+        """
         if hasattr(arg1, 'coord'):
             # у объекта есть координата (типа Point)
             self.x = arg1.coord.x
@@ -57,63 +64,74 @@ class Point():
         #~ log.debug(str(self))
 
     def to_screen(self):
-        """Преобразовать координаты к экранным"""
+        """
+            Convert coordinates to display
+        """
         return int(self.x), constants.field_height - int(self.y)
 
     def add(self, vector):
-        """Прибавить вектор - точка смещается на вектор"""
+        """
+            Add vector - point moves to the vector
+        """
         self.x += vector.dx
         self.y += vector.dy
 
     def __add__(self, vector):
-        """ операнд сложения точки и вектора """
+        """
+            Addition of point operand
+        """
         if vector.__class__ != Vector:
             raise Exception('point will add only vector')
         return Point(self.x + vector.dx,
                        self.y + vector.dy)
 
     def sub(self, vector):
-        """Вычесть вектор - точка смещается на "минус" вектор"""
+        """
+            Subtract vector - point moves to the "minus" vector
+        """
         self.x -= vector.dx
         self.y -= vector.dy
 
     def __sub__(self, vector):
-        """ операнд вычитания вектора из точки """
+        """
+            Vector subtraction from the point operand
+        """
         if vector.__class__ != Vector:
             raise Exception('point will sub only vector')
         return Point(self.x - vector.dx,
                        self.y - vector.dy)
 
     def distance_to(self, point2):
-        """Расстояние до другой точки"""
+        """
+            The distance to other points
+        """
         return sqrt((self.x - point2.x) ** 2 + (self.y - point2.y) ** 2)
 
     def near(self, point2, radius=5):
-        """Признак расположения рядом с другой точкой,
-        рядом - это значит ближе, чем радиус"""
+        """
+            point2 closer than the radius
+        """
         return self.distance_to(point2) < radius
 
     def __eq__(self, point2):
-        """Сравнение двух точек на равенство целочисленных координат"""
+        """
+            Comparison of the two points on the equality of integer coordinates
+        """
         if  int(self.x) == int(point2.x) and int(self.y) == int(point2.y):
             return True
         return False
 
     def __str__(self):
-        """Преобразование к строке"""
         return 'p(%.1f,%.1f)' % (self.x, self.y)
 
     def __repr__(self):
-        """Представление """
         return str(self)
 
     def __iter__(self):
-        """Итерация по значениям координат """
         yield self.x
         yield self.y
 
     def __getitem__(self, ind):
-        """индексация точки - отдать координату по индексу """
         if ind:
             return self.y
         return self.x
@@ -125,14 +143,17 @@ class Point():
 
 
 class Vector():
-    """Класс математического вектора"""
+    """
+        Mathematical vector
+    """
 
     def __init__(self, arg1, arg2, arg3=None):
-        """Создать вектор. Можно создать:
-            двух точек arg1, arg2 (длинной в модуль arg3, если указан)
-            направление arg1 и модуль вектора arg2
         """
-        #~ log.debug("vector init (%s, %s, %s)", arg1, arg2, arg3)
+            Make vector from:
+            Points/game objects - from point arg1 to point arg2
+                (with module arg3)
+            Numbers - with angle arg1 and module arg2
+        """
         self.dx, self.dy, self.angle = 0, 0, None
 
         if hasattr(arg1, 'x') or hasattr(arg1, 'coord'):  # Point or GameObject
@@ -162,14 +183,18 @@ class Vector():
             raise Exception(Vector.__init__.__doc__)
 
     def add(self, vector2):
-        """Сложение векторов"""
+        """
+            Composition of vectors
+        """
         self.dx += vector2.dx
         self.dy += vector2.dy
         self._determine_module()
         self._determine_angle()
 
     def mul(self, raz):
-        """умножение вектора на число"""
+        """
+            Vector-number multiplication
+        """
         self.dx *= raz
         self.dy *= raz
         self._determine_module()
@@ -199,7 +224,6 @@ class Vector():
         return str(self)
 
     def __nonzero__(self):
-        """Проверка на пустоту"""
         return int(self.module)
 
     def __neg__(self):

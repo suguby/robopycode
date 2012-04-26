@@ -11,7 +11,9 @@ import events
 
 
 class Scene:
-    """Сцена игры. Содержит статичные элементы"""
+    """
+        Game scene. Container for all game objects.
+    """
 
     def __init__(self, name):
         self.grounds = []
@@ -27,8 +29,10 @@ class Scene:
         self._step = 0
 
     def game_step(self):
-        """Обработка состояний обьектов сцены -
-        проверка на коллизии и попадания и радары"""
+        """
+            Proceed objects states, collision detection, hits
+            and radars discovering
+        """
         for obj in self.grounds + self.shots:
             obj._distance_cache = {}
         for obj in self.grounds:
@@ -92,7 +96,9 @@ class Scene:
             obj.game_step()
 
     def go(self):
-        """ Главный цикл игры """
+        """
+            Main game cycle - the game begin!
+        """
         while True:
 
             # получение состояния клавы и мыши
@@ -142,10 +148,16 @@ class Scene:
 
 
 def _collide_circle(left, right):
+    """
+        Detect collision by radius of objects
+    """
     return left.distance_to(right) <= left.radius + right.radius
 
 
 def _overlapped(left, right):
+    """
+        Is two objects overlapped
+    """
     return int((left.radius + right.radius) - left.distance_to(right))
 
 
@@ -155,7 +167,9 @@ _radar_point_back_distance = math.sin(_half_tank_radar_angle / 180 * math.pi) \
 
 
 def _in_radar_fork(obj, target):
-
+    """
+        Is target in radar beam?
+    """
     point_back_vector = geometry.Vector(obj.course + 180,
                                         _radar_point_back_distance)
     point_back = geometry.Point(obj.coord)

@@ -3,6 +3,9 @@
 
 
 class GameEvent:
+    """
+        Base class for objects events
+    """
 
     def __init__(self, event_objs=None):
         self._event_objs = event_objs or []
