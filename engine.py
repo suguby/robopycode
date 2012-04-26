@@ -28,7 +28,7 @@ class Scene:
         self.hold_state = False  # режим пошаговой отладки
         self._step = 0
 
-    def game_step(self):
+    def _game_step(self):
         """
             Proceed objects states, collision detection, hits
             and radars discovering
@@ -90,10 +90,10 @@ class Scene:
             obj._proceed_events()
             #~ print obj._id, obj._detected_by
 #            obj.armor += 1
-            obj.game_step()
+            obj._game_step()
 
         for obj in self.shots + self.exploisons:
-            obj.game_step()
+            obj._game_step()
 
     def go(self):
         """
@@ -135,7 +135,7 @@ class Scene:
             # шаг игры, если надо
             if not self.hold_state or self.ui.one_step:
                 self._step += 1
-                self.game_step()
+                self._game_step()
                 if common._debug:
                     common.log.debug('=' * 20, self._step, '=' * 10)
 
