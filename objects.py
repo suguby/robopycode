@@ -39,19 +39,21 @@ class GameObject():
         self._state = 'stopped'
         self._need_moving = False
 
-        # container - это список, обьявлен на уровне порожденного класса,
+        # container - это список обьектов игры по типам,
         # инициализируется в Scene
+        if self.container is None:
+            raise Exception("You must create robopycode.engine.Scene instance at first!")
         self.container.append(self)
 
         GameObject._objects_count += 1
-        self._id = GameObject._objects_count
+        self.id = GameObject._objects_count
         self.debug('born %s', self)
 
         self._heartbeat_tics = 5
 
     def __str__(self):
         return 'obj(%s, %s %s cour=%.1f %s)' \
-                % (self._id, self.coord, self.vector,
+                % (self.id, self.coord, self.vector,
                    self.course, self._state)
 
     def __repr__(self):
@@ -65,10 +67,10 @@ class GameObject():
         """
         if isinstance(self, Tank):
             if self._selected:
-                common.log.debug('%s:%s' % (self._id, pattern), *args)
+                common.log.debug('%s:%s' % (self.id, pattern), *args)
         else:
             common.log.debug('%s:%s:%s' % (self.__class__.__name__,
-                                           self._id, pattern), *args)
+                                           self.id, pattern), *args)
 
     def type(self):
         return self.__name__
@@ -260,7 +262,6 @@ class GameObject():
         """
         pass
 
-
 class Gun:
     __name__ = 'Gun'
     states = ['reloading', 'loaded']
@@ -298,8 +299,7 @@ class Gun:
             self._state = 'reloading'
             return shot
 
-
-class Tank(GameObject, user_interface.RoboSprite):
+class Tank(GameObject):
     """
         Tank. May ride on the screen.
 
@@ -319,7 +319,6 @@ class Tank(GameObject, user_interface.RoboSprite):
         if not pos:
             pos = common.random_point(self.radius)
         GameObject.__init__(self, pos, angle=angle)
-        user_interface.RoboSprite.__init__(self)
         self.gun = Gun(self)
         self._armor = float(constants.tank_max_armor)
         self.explosion = None
@@ -328,6 +327,10 @@ class Tank(GameObject, user_interface.RoboSprite):
     @property
     def armor(self):
         return int(self._armor)
+
+    @property
+    def gun_heat(self):
+        return self.gun.heat
 
     def _game_step(self):
         """
@@ -374,7 +377,7 @@ class Tank(GameObject, user_interface.RoboSprite):
         """
         self.stop()
         Explosion(self.coord, self)  # взрыв на нашем месте
-        self.kill()
+#        self.kill() - TODO вынести в спрайт
         if self in self.container:
             self.container.remove(self)
 
@@ -504,7 +507,7 @@ class Target(Tank):
         self.move_at(common.random_point())
 
 
-class Shot(GameObject, user_interface.RoboSprite):
+class Shot(GameObject):
     """
         The shell. Flies in a straight until it hits the target.
 
@@ -522,7 +525,6 @@ class Shot(GameObject, user_interface.RoboSprite):
             Zapustit' snarjad iz ukazannoj tochki v ukazannom napravlenii
         """
         GameObject.__init__(self, pos, revolvable=False)
-        user_interface.RoboSprite.__init__(self)
         self.move(direction, constants.shot_speed)
         self.life = constants.shot_life
         self.power = constants.shot_power
@@ -534,7 +536,7 @@ class Shot(GameObject, user_interface.RoboSprite):
             vzryv!
         """
         SmallExplosion(self.coord, obj)  # взрыв на месте снаряда
-        self.kill()  # as RoboSprite instance
+#        self.kill()  TODO as RoboSprite instance
         if self.owner:
             self.owner.shot = None
             self.owner = None
@@ -543,13 +545,13 @@ class Shot(GameObject, user_interface.RoboSprite):
         self.debug('%s', self)
         self.life -= 1
         if not self.life or not self._state == 'moving':
-            self.kill()
+#            self.kill() TODO as RoboSprite instance
             self.owner.shot = None
             self.container.remove(self)
         GameObject._game_step(self)
 
-
-class Explosion(GameObject, user_interface.RoboSprite):
+# TODO подумать куда отнести взрывы, ведь в игоровой механике они не участвуют
+class Explosion(GameObject):
     """
         The explosion of the tank.
 
@@ -564,7 +566,6 @@ class Explosion(GameObject, user_interface.RoboSprite):
 
     def __init__(self, explosion_coord, hitted_obj):
         GameObject.__init__(self, explosion_coord, revolvable=False)
-        user_interface.RoboSprite.__init__(self)
         self.vector = geometry.Vector(hitted_obj.coord, explosion_coord)
         self.vector.angle -= hitted_obj.course  # смещение при отображении
         self.owner = hitted_obj
@@ -576,7 +577,7 @@ class Explosion(GameObject, user_interface.RoboSprite):
         self.life -= 1
         self.image = self.images[self.life // self.animcycle % 2]
         if self.life <= 0:
-            self.kill()
+#            self.kill() TODO as RoboSprite instance
             self.container.remove(self)
             self.owner.explosion = None
             self.owner = None

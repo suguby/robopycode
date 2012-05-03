@@ -28,7 +28,7 @@ class RoboSprite(DirtySprite):
     _img_file_name = 'empty.png'
     _layer = 0
 
-    def __init__(self):
+    def __init__(self, id):
         """
             Link object with its sprite
         """
@@ -51,8 +51,12 @@ class RoboSprite(DirtySprite):
            )
         self._id_font = Font(None, 27)
 
-        self.armor_value_px = 0
-        self.debug('RoboSprite %s', self)
+#        self._armor_pixels = 0
+        self.id = id
+
+    def update_state(self, state):
+        self.coord = state.coord
+        # TODO обновить все атрибуты
 
     def __str__(self):
         return 'sprite(%s: rect=%s layer=%s)' \
@@ -157,6 +161,36 @@ class UserInterface:
         self._step = 0
         self.debug = False
 
+        self.prev_state = {}
+
+    def register(self, objects_state):
+        """
+            зарегестрировать состояния обьектов игры, создать/удалить спрайты если надо
+        """
+        new_ids = set(objects_state)
+        old_ids = set(self.prev_state)
+        new_state = {}
+
+        for id in old_ids - new_ids:
+            # старые объекты - убиваем спрайты
+            sprite = self.prev_state[id]
+            sprite.kill()
+
+        for id in new_ids - old_ids:
+            # новые объекты - создаем спрайты
+            sprite = RoboSprite(id=id)
+            sprite.update_state(state=objects_state[id])
+            new_state[id] = sprite
+
+        for id in old_ids & new_ids:
+            # существующие объекты - обновляем состояния
+            sprite = self.prev_state[id]
+            state = objects_state[id]
+            sprite.update_state(state)
+            new_state[id] = sprite
+
+        self.prev_state = new_state
+
     def get_keyboard_and_mouse_state(self):
         self.one_step = False
         self.switch_debug = False
@@ -231,7 +265,7 @@ class UserInterface:
         return True
 
 
-class Fps(pygame.sprite.DirtySprite):
+class Fps(DirtySprite):
     """
         Show game FPS
     """

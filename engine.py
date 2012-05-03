@@ -9,6 +9,28 @@ import math
 import constants
 import events
 
+class ObjectState:
+    """
+        класс для хранения и передачи состояния объекта между потоками
+    """
+    params = (
+        'id',
+        'coord',
+        'course',
+        'armor',
+        'gun_heat',
+        'detected_by',
+        'revolvable',
+        )
+
+    def __init__(self, obj):
+        self.update(obj)
+
+    def update(self, obj):
+        for param in self.params:
+            if hasattr(obj, param):
+                val = getattr(obj, param)
+                setattr(self, param, val)
 
 class Scene:
     """
@@ -40,7 +62,7 @@ class Scene:
             obj._detected_by = []
         searched_left_ids = []
         for left in self.grounds[:]:
-            #~ searched_left_ids.append(left._id)
+            #~ searched_left_ids.append(left.id)
             left.debug(">>> start proceed at scene step")
             left.debug(str(left))
             for right in self.grounds[:]:
@@ -92,6 +114,10 @@ class Scene:
             Main game cycle - the game begin!
         """
         while True:
+            objects_state = {}
+            for obj in self.grounds + self.shots + self.exploisons:
+                objects_state[obj.id] = ObjectState(obj)
+            self.ui.register(objects_state)
 
             # получение состояния клавы и мыши
             self.ui.get_keyboard_and_mouse_state()
