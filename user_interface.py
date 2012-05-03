@@ -21,8 +21,7 @@ _max_layers = 5
 _sprites_by_layer = [Group() for i in range(_max_layers + 1)]
 _images_cash = {}
 
-
-class MshpSprite(DirtySprite):
+class RoboSprite(DirtySprite):
     """
         Show sprites on screen
     """
@@ -53,7 +52,7 @@ class MshpSprite(DirtySprite):
         self._id_font = Font(None, 27)
 
         self.armor_value_px = 0
-        self.debug('MshpSprite %s', self)
+        self.debug('RoboSprite %s', self)
 
     def __str__(self):
         return 'sprite(%s: rect=%s layer=%s)' \
@@ -146,7 +145,7 @@ class UserInterface:
         self.clear_screen()
 
         self.all = pygame.sprite.LayeredUpdates()
-        MshpSprite.sprite_containers = self.all
+        RoboSprite.sprite_containers = self.all
         Fps.sprite_containers = self.all
 
         global clock

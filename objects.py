@@ -299,7 +299,7 @@ class Gun:
             return shot
 
 
-class Tank(GameObject, user_interface.MshpSprite):
+class Tank(GameObject, user_interface.RoboSprite):
     """
         Tank. May ride on the screen.
 
@@ -319,7 +319,7 @@ class Tank(GameObject, user_interface.MshpSprite):
         if not pos:
             pos = common.random_point(self.radius)
         GameObject.__init__(self, pos, angle=angle)
-        user_interface.MshpSprite.__init__(self)
+        user_interface.RoboSprite.__init__(self)
         self.gun = Gun(self)
         self._armor = float(constants.tank_max_armor)
         self.explosion = None
@@ -504,7 +504,7 @@ class Target(Tank):
         self.move_at(common.random_point())
 
 
-class Shot(GameObject, user_interface.MshpSprite):
+class Shot(GameObject, user_interface.RoboSprite):
     """
         The shell. Flies in a straight until it hits the target.
 
@@ -522,7 +522,7 @@ class Shot(GameObject, user_interface.MshpSprite):
             Zapustit' snarjad iz ukazannoj tochki v ukazannom napravlenii
         """
         GameObject.__init__(self, pos, revolvable=False)
-        user_interface.MshpSprite.__init__(self)
+        user_interface.RoboSprite.__init__(self)
         self.move(direction, constants.shot_speed)
         self.life = constants.shot_life
         self.power = constants.shot_power
@@ -534,7 +534,7 @@ class Shot(GameObject, user_interface.MshpSprite):
             vzryv!
         """
         SmallExplosion(self.coord, obj)  # взрыв на месте снаряда
-        self.kill()  # as MshpSprite instance
+        self.kill()  # as RoboSprite instance
         if self.owner:
             self.owner.shot = None
             self.owner = None
@@ -549,7 +549,7 @@ class Shot(GameObject, user_interface.MshpSprite):
         GameObject._game_step(self)
 
 
-class Explosion(GameObject, user_interface.MshpSprite):
+class Explosion(GameObject, user_interface.RoboSprite):
     """
         The explosion of the tank.
 
@@ -564,7 +564,7 @@ class Explosion(GameObject, user_interface.MshpSprite):
 
     def __init__(self, explosion_coord, hitted_obj):
         GameObject.__init__(self, explosion_coord, revolvable=False)
-        user_interface.MshpSprite.__init__(self)
+        user_interface.RoboSprite.__init__(self)
         self.vector = geometry.Vector(hitted_obj.coord, explosion_coord)
         self.vector.angle -= hitted_obj.course  # смещение при отображении
         self.owner = hitted_obj
