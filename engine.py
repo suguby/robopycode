@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import user_interface
+from user_interface import UserInterface
 import geometry
 import objects
 import common
@@ -24,7 +24,7 @@ class Scene:
         objects.Explosion.container = self.exploisons
         objects.Tank.container = self.grounds
 
-        self.ui = user_interface.UserInterface(name)
+        self.ui = UserInterface(name)
         self.hold_state = False  # режим пошаговой отладки
         self._step = 0
 

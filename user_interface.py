@@ -9,7 +9,6 @@ from pygame.transform import flip
 from pygame.draw import line, circle, rect, aalines
 from pygame.display import set_caption, set_mode
 from pygame.time import Clock
-import pygame.gfxdraw
 import common
 import constants
 import os
@@ -21,9 +20,6 @@ log = common.log
 _max_layers = 5
 _sprites_by_layer = [Group() for i in range(_max_layers + 1)]
 _images_cash = {}
-
-#_revolvable = 0
-#_determine_collisions = 1
 
 
 class MshpSprite(DirtySprite):
@@ -66,6 +62,46 @@ class MshpSprite(DirtySprite):
     def __repr__(self):
         return str(self)
 
+    def _show_armor(self):
+        if hasattr(self, 'armor') and self.armor > 0:
+            bar_px = int((self.armor / 100.0) * self.rect.width)
+            line(self.image, (0, 255, 70), (0, 3), (bar_px, 3), 3)
+
+    def _show_gun_heat(self):
+        if hasattr(self, 'gun') and self.gun.heat > 0:
+            max_heat = float(constants.tank_gun_heat_after_fire)
+            bar_px = int(((max_heat - self.gun.heat)
+                          / max_heat) * self.rect.width)
+            line(self.image, (232, 129, 31), (0, 5),
+                (bar_px, 5), 2)
+
+    def _show_selected(self):
+        if self._selected:
+            outline_rect = pygame.Rect(0, 0,
+                self.rect.width, self.rect.height)
+            rect(self.image,
+                self._debug_color, outline_rect, 1)
+
+    def _show_tank_id(self):
+        if self.type() == 'Tank':
+            id_image = self._id_font.render(str(self._id),
+                0,
+                self._debug_color)
+            self.image.blit(id_image, (5, 5))
+
+    def _show_detection(self):
+        if getattr(self, '_detected_by', []):
+            radius = 0
+            for obj in self._detected_by:
+                if obj._selected:
+                    radius += 6
+                    circle(self.image,
+                        obj._debug_color,
+                        (self.rect.width // 2,
+                         self.rect.height // 2),
+                        radius,
+                        3)
+
     def update(self):
         """
             Internal function for refreshing internal variables.
@@ -79,37 +115,12 @@ class MshpSprite(DirtySprite):
         else:
             self.image = self.images[0].copy()
 
-        if hasattr(self, 'armor') and self.armor > 0:
-            bar_px = int((self.armor / 100.0) * self.rect.width)
-            line(self.image, (0, 255, 70), (0, 3), (bar_px, 3), 3)
-        if hasattr(self, 'gun') and self.gun.heat > 0:
-            max_heat = float(constants.tank_gun_heat_after_fire)
-            bar_px = int(((max_heat - self.gun.heat)
-                          / max_heat) * self.rect.width)
-            line(self.image, (232, 129, 31), (0, 5),
-                (bar_px, 5), 2)
-        if self._selected:
-            outline_rect = pygame.Rect(0, 0,
-                                       self.rect.width, self.rect.height)
-            rect(self.image,
-                             self._debug_color, outline_rect, 1)
+        self._show_armor()
+        self._show_gun_heat()
+        self._show_selected()
         if common._debug:
-            if self.type() == 'Tank':
-                id_image = self._id_font.render(str(self._id),
-                                                0,
-                                                self._debug_color)
-                self.image.blit(id_image, (5, 5))
-            if hasattr(self, '_detected_by') and self._detected_by:
-                radius = 0
-                for obj in self._detected_by:
-                    if obj._selected:
-                        radius += 6
-                        circle(self.image,
-                                           obj._debug_color,
-                                           (self.rect.width // 2,
-                                            self.rect.height // 2),
-                                           radius,
-                                           3)
+            self._show_tank_id()
+            self._show_detection()
 
 
 class UserInterface:
