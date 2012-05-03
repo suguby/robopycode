@@ -19,8 +19,10 @@ class ObjectState:
         'course',
         'armor',
         'gun_heat',
-        'detected_by',
         'revolvable',
+        '_detected_by',
+        '_image_name',
+        '_layer'
         )
 
     def __init__(self, obj):
