@@ -128,10 +128,7 @@ class GameObject():
         if speed > constants.tank_speed:
             speed = constants.tank_speed
         self.target_coord = target
-#        self.debug('before vector %s %s %s',
-#        self.coord, self.target_coord, speed)
         self.vector = geometry.Vector(self.coord, self.target_coord, speed)
-#        self.debug('after vector %s', self)
         self._need_moving = True
         if self._need_turning():
             self._state = 'turning'
@@ -173,7 +170,6 @@ class GameObject():
                 self.course = geometry.normalise_angle(self.course)
 
         if self._state == 'moving':
-#            self.debug('%s adding %s ', self.coord, self.vector)
             self.coord.add(self.vector)
             if self.coord.near(self.target_coord):
                 self.stop()
@@ -222,14 +218,7 @@ class GameObject():
         """
         if isinstance(obj, GameObject):  # и для порожденных классов
             return self.coord.distance_to(obj.coord)
-            #~ if obj._id in self._distance_cache:
-                #~ return self._distance_cache[obj._id]
-            #~ dist = self.coord.distance_to(obj.coord)
-            #~ self._distance_cache[obj._id] = dist
-            #~ obj._distance_cache[self._id] = dist
-            #~ return dist
         if obj.__class__ == geometry.Point:
-            #~ print 'distance_to Point'
             return self.coord.distance_to(obj)
         raise Exception("GameObject.distance_to: obj %s "
                         "must be GameObject or Point!" % (obj,))
@@ -241,9 +230,6 @@ class GameObject():
             Proverka blizosti k ob'ektu <ob'ekt/tochka>
         """
         return self.distance_to(obj) <= radius
-
-#    def step_back(self):
-#        self.coord.add(-self.vector)
 
     def _proceed_events(self):
         while not self._events.empty():
@@ -360,11 +346,7 @@ class Tank(GameObject, user_interface.MshpSprite):
             Обновить взрыв на броне - должен двигаться с нами :)
         """
         if self.explosion:
-            #~ print '+'*20
-            #~ print self
-            #~ print self.explosion
             self.explosion.coord = geometry.Point(self.coord)
-            #~ print self.course, self.explosion.vector.angle
             self.debug("tank course %s explosion.vector.angle %s "
                        "explosion.coord %s", self.course,
                        self.explosion.vector.angle, self.explosion.coord)
@@ -373,7 +355,6 @@ class Tank(GameObject, user_interface.MshpSprite):
                                          self.explosion.vector.module)
             self.explosion.coord.add(expl_shift)
             self.debug("after add explosion is %s", self.explosion)
-            #~ print self.explosion
 
     def fire(self):
         """
@@ -405,7 +386,6 @@ class Tank(GameObject, user_interface.MshpSprite):
         """
         self._armor -= shot.power
         self._events.put(events.EventHit())
-        #~ print self._id, 'hited! armor now ', self.armor
         if self._armor <= 0:
             if shot.owner:  # еще не был убит
                 shot.owner._events.put(events.EventTargetDestroyed())

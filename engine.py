@@ -63,17 +63,11 @@ class Scene:
                 if distance < constants.tank_radar_range:
                     left.debug("distance < constants.tank_radar_range for %s",
                                right._id)
-                    #~ dx = right.coord.x - left.coord.x
-                    #~ dy = right.coord.y - left.coord.y
                     if _in_radar_fork(left, right):
                         left.debug("see %s", right._id)
                         if right.armor > 0:
                             left._radar_detected_objs.append(right)
                             right._detected_by.append(left)
-                    #~ if _in_radar_fork(right, -dx, -dy):
-                        #~ right.debug("see %s", left._id)
-                        #~ right._radar_detected_objs.append(left)
-                        #~ left._detected_by.append(right)
             # попадания (список летяших снарядов может уменьшаться)
             for shot in self.shots[:]:
                 if shot.owner and shot.owner == left:
@@ -88,8 +82,6 @@ class Scene:
                 radar_event = events.EventRadarRange(obj._radar_detected_objs)
                 obj._events.put(radar_event)
             obj._proceed_events()
-            #~ print obj._id, obj._detected_by
-#            obj.armor += 1
             obj._game_step()
 
         for obj in self.shots + self.exploisons:

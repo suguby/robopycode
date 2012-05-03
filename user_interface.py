@@ -3,6 +3,12 @@
 
 import pygame
 from pygame.locals import *
+from pygame.sprite import Sprite, DirtySprite, Group
+from pygame.font import Font
+from pygame.transform import flip
+from pygame.draw import line, circle, rect, aalines
+from pygame.display import set_caption, set_mode
+from pygame.time import Clock
 import pygame.gfxdraw
 import common
 import constants
@@ -13,32 +19,34 @@ from geometry import Point
 _debug = common._debug
 log = common.log
 _max_layers = 5
-_sprites_by_layer = [pygame.sprite.Group() for i in range(_max_layers + 1)]
+_sprites_by_layer = [Group() for i in range(_max_layers + 1)]
 _images_cash = {}
 
 #_revolvable = 0
 #_determine_collisions = 1
 
 
-class MshpSprite(pygame.sprite.DirtySprite):
-    """Класс отображения объектов на экране"""
+class MshpSprite(DirtySprite):
+    """
+        Show sprites on screen
+    """
     _img_file_name = 'empty.png'
     _layer = 0
 
     def __init__(self):
-        """Привязать объект к его спрайту"""
-
+        """
+            Link object with its sprite
+        """
         if self._layer > _max_layers:
             self._layer = _max_layers
         if self._layer < 0:
             self._layer = 0
         self.sprite_containers = (self.sprite_containers,
                                   _sprites_by_layer[self._layer])
-        # , self.sprite_container
-        pygame.sprite.Sprite.__init__(self, self.sprite_containers)
+        Sprite.__init__(self, self.sprite_containers)
 
         image = load_image(self._img_file_name, -1)
-        self.images = [image, pygame.transform.flip(image, 1, 0)]
+        self.images = [image, flip(image, 1, 0)]
         self.image = self.images[0].copy()
         self.rect = self.image.get_rect()
         self._debug_color = (
@@ -46,7 +54,7 @@ class MshpSprite(pygame.sprite.DirtySprite):
             random.randint(50, 255),
             0
            )
-        self._id_font = pygame.font.Font(None, 27)
+        self._id_font = Font(None, 27)
 
         self.armor_value_px = 0
         self.debug('MshpSprite %s', self)
@@ -59,7 +67,10 @@ class MshpSprite(pygame.sprite.DirtySprite):
         return str(self)
 
     def update(self):
-        """Внутренняя функция для обновления переменных отображения"""
+        """
+            Internal function for refreshing internal variables.
+            Do not call in your code!
+        """
         self.rect.center = self.coord.to_screen()
         if self.revolvable:
             self.image = _rotate_about_center(self.images[0],
@@ -70,26 +81,17 @@ class MshpSprite(pygame.sprite.DirtySprite):
 
         if hasattr(self, 'armor') and self.armor > 0:
             bar_px = int((self.armor / 100.0) * self.rect.width)
-            pygame.draw.line(self.image, (0, 255, 70), (0, 3), (bar_px, 3), 3)
-            #~ pygame.draw.line(self.image, (0,0,0), (0,0),
-            #   (self.rect.width,0), 1)
-            #~ pygame.draw.line(self.image, (0,0,0), (0,0),
-            #   (0,self.rect.height), 1)
+            line(self.image, (0, 255, 70), (0, 3), (bar_px, 3), 3)
         if hasattr(self, 'gun') and self.gun.heat > 0:
             max_heat = float(constants.tank_gun_heat_after_fire)
             bar_px = int(((max_heat - self.gun.heat)
                           / max_heat) * self.rect.width)
-            pygame.draw.line(self.image, (232, 129, 31), (0, 5),
+            line(self.image, (232, 129, 31), (0, 5),
                 (bar_px, 5), 2)
-            #~ pygame.draw.line(self.image, (0,0,0), (0,0),
-            #   (self.rect.width,0), 1)
-            #~ pygame.draw.line(self.image, (0,0,0), (0,0),
-            #   (0,self.rect.height), 1)
         if self._selected:
             outline_rect = pygame.Rect(0, 0,
                                        self.rect.width, self.rect.height)
-            #~ print outline_rect
-            pygame.draw.rect(self.image,
+            rect(self.image,
                              self._debug_color, outline_rect, 1)
         if common._debug:
             if self.type() == 'Tank':
@@ -102,7 +104,7 @@ class MshpSprite(pygame.sprite.DirtySprite):
                 for obj in self._detected_by:
                     if obj._selected:
                         radius += 6
-                        pygame.draw.circle(self.image,
+                        circle(self.image,
                                            obj._debug_color,
                                            (self.rect.width // 2,
                                             self.rect.height // 2),
@@ -111,18 +113,21 @@ class MshpSprite(pygame.sprite.DirtySprite):
 
 
 class UserInterface:
-    """Отображение игры: отображение спрайтов
-    и взаимодействия с пользователем"""
+    """
+        Show sprites and get feedback from user
+    """
 
     def __init__(self, name):
-        """Создать окно игры. """
+        """
+            Make game window
+        """
         global SCREENRECT
 
         pygame.init()
         SCREENRECT = Rect((0, 0),
                           (constants.field_width, constants.field_height))
-        self.screen = pygame.display.set_mode(SCREENRECT.size)
-        pygame.display.set_caption(name)
+        self.screen = set_mode(SCREENRECT.size)
+        set_caption(name)
 
         self.background = pygame.Surface(self.screen.get_size())  # и ее размер
         self.background = self.background.convert()
@@ -134,7 +139,8 @@ class UserInterface:
         Fps.sprite_containers = self.all
 
         global clock
-        clock = pygame.time.Clock()
+        clock = Clock()
+
         self.fps_meter = Fps(color=(255, 255, 0))
         self.max_fps = constants.max_fps
 
@@ -183,17 +189,17 @@ class UserInterface:
                   obj.coord.y)
         ]
         points = [x.to_screen() for x in points]
-        pygame.draw.aalines(self.screen,
+        aalines(self.screen,
                             obj._debug_color,
                             True,
                             points)
 
     def draw(self):
-        """Отрисовка спрайтов на экране"""
+        """
+            Drawing sprites on screen
+        """
 
         #update all the sprites
-#        for sprites in _sprites_by_layer:
-#            sprites.update()
         self.all.update()
 
         #draw the scene
@@ -203,8 +209,6 @@ class UserInterface:
             for obj in self.all:
                 if obj.type() == 'Tank' and obj._selected:
                     self._draw_radar_outline(obj)
-#            [self._draw_radar_outline(obj) for obj in self.all \
-#                        if obj.type() == 'Tank' and obj._selected]
             pygame.display.flip()
         else:
             # clear/erase the last drawn sprites
@@ -218,11 +222,15 @@ class UserInterface:
 
 
 class Fps(pygame.sprite.DirtySprite):
-    """Отображение FPS игры"""
+    """
+        Show game FPS
+    """
     _layer = 5
 
     def __init__(self, color=(255, 255, 255)):
-        """Создать индикатор FPS"""
+        """
+            Make indicator
+        """
         pygame.sprite.Sprite.__init__(self, self.sprite_containers)
         self.show = False
         self.font = pygame.font.Font(None, 27)
@@ -233,7 +241,9 @@ class Fps(pygame.sprite.DirtySprite):
         self.fps = []
 
     def update(self):
-        """Обновить значение FPS"""
+        """
+            Refresh indicator
+        """
         global clock
         current_fps = clock.get_fps()
         del self.fps[100:]
@@ -250,7 +260,9 @@ class Fps(pygame.sprite.DirtySprite):
 
 
 def load_image(name, colorkey=None):
-    """Загрузить изображение из файла"""
+    """
+        Load image from file
+    """
     fullname = os.path.join(constants.data_path, name)
     try:
         image = pygame.image.load(fullname)
@@ -266,13 +278,13 @@ def load_image(name, colorkey=None):
 
 
 def _rotate_about_center(image, image_name, angle):
-    """rotate an image while keeping its center and size"""
+    """
+        rotate an image while keeping its center and size
+    """
     global _images_cash
     angle = int(angle)
     try:
         return _images_cash[image_name][angle].copy()
-        #~ log.debug("image [%s|%s] found in cashe", image_name, angle)
-        #~ return ret
     except:
         orig_rect = image.get_rect()
         rot_image = pygame.transform.rotate(image, angle)
