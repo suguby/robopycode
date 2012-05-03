@@ -43,7 +43,6 @@ class MshpSprite(DirtySprite):
             self._layer = 0
         self.sprite_containers = (self.sprite_containers,
                                   _sprites_by_layer[self._layer])
-        # , self.sprite_container
         Sprite.__init__(self, self.sprite_containers)
 
         image = load_image(self._img_file_name, -1)
@@ -83,24 +82,15 @@ class MshpSprite(DirtySprite):
         if hasattr(self, 'armor') and self.armor > 0:
             bar_px = int((self.armor / 100.0) * self.rect.width)
             line(self.image, (0, 255, 70), (0, 3), (bar_px, 3), 3)
-            #~ pygame.draw.line(self.image, (0,0,0), (0,0),
-            #   (self.rect.width,0), 1)
-            #~ pygame.draw.line(self.image, (0,0,0), (0,0),
-            #   (0,self.rect.height), 1)
         if hasattr(self, 'gun') and self.gun.heat > 0:
             max_heat = float(constants.tank_gun_heat_after_fire)
             bar_px = int(((max_heat - self.gun.heat)
                           / max_heat) * self.rect.width)
             line(self.image, (232, 129, 31), (0, 5),
                 (bar_px, 5), 2)
-            #~ pygame.draw.line(self.image, (0,0,0), (0,0),
-            #   (self.rect.width,0), 1)
-            #~ pygame.draw.line(self.image, (0,0,0), (0,0),
-            #   (0,self.rect.height), 1)
         if self._selected:
             outline_rect = pygame.Rect(0, 0,
                                        self.rect.width, self.rect.height)
-            #~ print outline_rect
             rect(self.image,
                              self._debug_color, outline_rect, 1)
         if common._debug:
@@ -210,8 +200,6 @@ class UserInterface:
         """
 
         #update all the sprites
-#        for sprites in _sprites_by_layer:
-#            sprites.update()
         self.all.update()
 
         #draw the scene
@@ -221,8 +209,6 @@ class UserInterface:
             for obj in self.all:
                 if obj.type() == 'Tank' and obj._selected:
                     self._draw_radar_outline(obj)
-#            [self._draw_radar_outline(obj) for obj in self.all \
-#                        if obj.type() == 'Tank' and obj._selected]
             pygame.display.flip()
         else:
             # clear/erase the last drawn sprites
@@ -299,8 +285,6 @@ def _rotate_about_center(image, image_name, angle):
     angle = int(angle)
     try:
         return _images_cash[image_name][angle].copy()
-        #~ log.debug("image [%s|%s] found in cashe", image_name, angle)
-        #~ return ret
     except:
         orig_rect = image.get_rect()
         rot_image = pygame.transform.rotate(image, angle)
