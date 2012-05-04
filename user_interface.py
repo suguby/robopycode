@@ -28,10 +28,13 @@ class RoboSprite(DirtySprite):
     _img_file_name = 'empty.png'
     _layer = 0
 
-    def __init__(self, id):
+    def __init__(self, id, state):
         """
             Link object with its sprite
         """
+        self.id = id
+        self.state = state
+
         if self._layer > _max_layers:
             self._layer = _max_layers
         if self._layer < 0:
@@ -40,7 +43,7 @@ class RoboSprite(DirtySprite):
                                   _sprites_by_layer[self._layer])
         Sprite.__init__(self, self.sprite_containers)
 
-        image = load_image(self._img_file_name, -1)
+        image = load_image(self.state._img_file_name, -1)
         self.images = [image, flip(image, 1, 0)]
         self.image = self.images[0].copy()
         self.rect = self.image.get_rect()
@@ -50,30 +53,31 @@ class RoboSprite(DirtySprite):
             0
            )
         self._id_font = Font(None, 27)
-
 #        self._armor_pixels = 0
-        self.id = id
+        self._selected = False
+        # для отрисовки взрывов
+        self._animcycle = 3
+        self._drawed_count = 0
 
     def update_state(self, state):
-        self.coord = state.coord
-        # TODO обновить все атрибуты
+        self.state = state
 
     def __str__(self):
         return 'sprite(%s: rect=%s layer=%s)' \
-                % (self._id, self.rect, self._layer)
+                % (self.id, self.rect, self._layer)
 
     def __repr__(self):
         return str(self)
 
     def _show_armor(self):
         if hasattr(self, 'armor') and self.armor > 0:
-            bar_px = int((self.armor / 100.0) * self.rect.width)
+            bar_px = int((self.state.armor / 100.0) * self.rect.width)
             line(self.image, (0, 255, 70), (0, 3), (bar_px, 3), 3)
 
     def _show_gun_heat(self):
-        if hasattr(self, 'gun') and self.gun.heat > 0:
+        if hasattr(self, 'gun') and self.state.gun_heat > 0:
             max_heat = float(constants.tank_gun_heat_after_fire)
-            bar_px = int(((max_heat - self.gun.heat)
+            bar_px = int(((max_heat - self.state.gun_heat)
                           / max_heat) * self.rect.width)
             line(self.image, (232, 129, 31), (0, 5),
                 (bar_px, 5), 2)
@@ -86,16 +90,16 @@ class RoboSprite(DirtySprite):
                 self._debug_color, outline_rect, 1)
 
     def _show_tank_id(self):
-        if self.type() == 'Tank':
+        if self.state.classname == 'Tank':
             id_image = self._id_font.render(str(self._id),
                 0,
                 self._debug_color)
             self.image.blit(id_image, (5, 5))
 
     def _show_detection(self):
-        if getattr(self, '_detected_by', []):
+        if getattr(self.state, '_detected_by', []):
             radius = 0
-            for obj in self._detected_by:
+            for obj in self.state._detected_by:
                 if obj._selected:
                     radius += 6
                     circle(self.image,
@@ -110,11 +114,14 @@ class RoboSprite(DirtySprite):
             Internal function for refreshing internal variables.
             Do not call in your code!
         """
-        self.rect.center = self.coord.to_screen()
-        if self.revolvable:
+        self.rect.center = self.state.coord.to_screen()
+        if self.state.revolvable:
             self.image = _rotate_about_center(self.images[0],
                                               self._img_file_name,
-                                              self.course)
+                                              self.state.course)
+        elif self.state._animated:
+            self._drawed_count += 1
+            self.image = self.images[self._drawed_count // self._animcycle % 2]
         else:
             self.image = self.images[0].copy()
 
@@ -125,12 +132,22 @@ class RoboSprite(DirtySprite):
             self._show_tank_id()
             self._show_detection()
 
+class UserInterfaceState:
+    """
+        Класс для передачи состояния клавиатуры и мыши
+    """
+    def __init__(self):
+        self.one_step = False
+        self.switch_debug = False
+        self.the_end = False
+        self.mouse_pos = None
+        self.mouse_buttons = None
+        self.selected_ids = []
 
 class UserInterface:
     """
         Show sprites and get feedback from user
     """
-
     def __init__(self, name):
         """
             Make game window
@@ -161,40 +178,58 @@ class UserInterface:
         self._step = 0
         self.debug = False
 
-        self.prev_state = {}
+        self.objects_state = {}
 
     def register(self, objects_state):
         """
             зарегестрировать состояния обьектов игры, создать/удалить спрайты если надо
         """
         new_ids = set(objects_state)
-        old_ids = set(self.prev_state)
-        new_state = {}
+        old_ids = set(self.objects_state)
+        new_objects_state = {}
 
         for id in old_ids - new_ids:
             # старые объекты - убиваем спрайты
-            sprite = self.prev_state[id]
+            sprite = self.objects_state[id]
             sprite.kill()
 
         for id in new_ids - old_ids:
             # новые объекты - создаем спрайты
-            sprite = RoboSprite(id=id)
-            sprite.update_state(state=objects_state[id])
-            new_state[id] = sprite
+            sprite = RoboSprite(id=id, state=objects_state[id])
+            new_objects_state[id] = sprite
 
         for id in old_ids & new_ids:
             # существующие объекты - обновляем состояния
-            sprite = self.prev_state[id]
+            sprite = self.objects_state[id]
             state = objects_state[id]
             sprite.update_state(state)
-            new_state[id] = sprite
+            new_objects_state[id] = sprite
 
-        self.prev_state = new_state
+        self.objects_state = new_objects_state
 
-    def get_keyboard_and_mouse_state(self):
-        self.one_step = False
-        self.switch_debug = False
-        self.the_end = False
+    def _select_objects(self, ui_state):
+        """
+            выделение обьектов мышкой
+        """
+        ui_state.mouse_pos = pygame.mouse.get_pos()
+        ui_state.mouse_buttons = pygame.mouse.get_pressed()
+
+        if ui_state.mouse_buttons[0] and not self.mouse_buttons[0]:
+            # mouse down
+            for obj in self.all:
+                if obj.state._selectable and obj.rect.collidepoint(ui_state.mouse_pos):
+                    # координаты экранные
+                    obj._selected = not obj._selected
+                #                    obj.debug('select %s', obj)
+                #                        self.selected = obj
+                elif not common._debug:
+                    # возможно выделение множества танков
+                    # только на режиме отладки
+                    obj._selected = False
+        self.mouse_buttons = ui_state.mouse_buttons
+
+    def get_ui_state(self):
+        ui_state = UserInterfaceState()
 
         for event in pygame.event.get():
             if event.type == KEYDOWN and event.key == K_f:
@@ -203,18 +238,23 @@ class UserInterface:
             if (event.type == QUIT) \
                 or (event.type == KEYDOWN and event.key == K_ESCAPE) \
                 or (event.type == KEYDOWN and event.key == K_q):
-                self.the_end = True
+                ui_state.the_end = True
             if event.type == KEYDOWN and event.key == K_d:
-                self.switch_debug = True
+                ui_state.switch_debug = True
             if event.type == KEYDOWN and event.key == K_s:
-                self.one_step = True
+                ui_state.one_step = True
         key = pygame.key.get_pressed()
         if key[pygame.K_g]:  # если нажата и удерживается
-            self.one_step = True
+            ui_state.one_step = True
         pygame.event.pump()
 
-        self.mouse_pos = pygame.mouse.get_pos()
-        self.mouse_buttons = pygame.mouse.get_pressed()
+        self._select_objects(ui_state)
+
+        if ui_state.switch_debug and common._debug:
+            # были в режиме отладки
+            self.clear_screen()
+#        self.ui.debug = common._debug # TODO это надо сделать в самом ui
+        return ui_state
 
     def clear_screen(self):
         self.screen.blit(self.background, (0, 0))

@@ -21,14 +21,14 @@ class ObjectState:
         'gun_heat',
         'revolvable',
         '_detected_by',
-        '_image_name',
-        '_layer'
+        '_img_file_name',
+        '_layer',
+        '_selectable',
+        'classname',
+        '_animated'
         )
 
     def __init__(self, obj):
-        self.update(obj)
-
-    def update(self, obj):
         for param in self.params:
             if hasattr(obj, param):
                 val = getattr(obj, param)
@@ -68,7 +68,7 @@ class Scene:
             left.debug(">>> start proceed at scene step")
             left.debug(str(left))
             for right in self.grounds[:]:
-                if (right._id == left._id) or (right._id in searched_left_ids):
+                if (right.id == left.id) or (right.id in searched_left_ids):
                     continue
                 distance = left.distance_to(right)
                 # коллизии
@@ -86,9 +86,9 @@ class Scene:
                 # радары
                 if distance < constants.tank_radar_range:
                     left.debug("distance < constants.tank_radar_range for %s",
-                               right._id)
+                               right.id)
                     if _in_radar_fork(left, right):
-                        left.debug("see %s", right._id)
+                        left.debug("see %s", right.id)
                         if right.armor > 0:
                             left._radar_detected_objs.append(right)
                             right._detected_by.append(left)
@@ -99,7 +99,7 @@ class Scene:
                 if _collide_circle(shot, left):
                     left.hit(shot)
                     shot.detonate_at(left)
-                    self.shots.remove(shot)
+#                    self.shots.remove(shot)
         # после главного цикла - евенты могут меняться
         for obj in self.grounds:
             if obj._radar_detected_objs:
@@ -122,45 +122,27 @@ class Scene:
             self.ui.register(objects_state)
 
             # получение состояния клавы и мыши
-            self.ui.get_keyboard_and_mouse_state()
-            if self.ui.the_end:
+            ui_state = self.ui.get_ui_state()
+            if ui_state.the_end:
                 break
 
-            # выделение обьектов мышкой
-            if self.ui.mouse_buttons[0] and not self.mouse_buttons[0]:
-                # mouse down
-                for obj in self.grounds:
-                    if obj.rect.collidepoint(self.ui.mouse_pos):
-                        # координаты экранные
-                        obj._selected = not obj._selected
-                        obj.debug('select %s', obj)
-#                        self.selected = obj
-                    elif not common._debug:
-                        # возможно выделение множества танков
-                        # только на режиме отладки
-                        obj._selected = False
-
-            self.mouse_buttons = self.ui.mouse_buttons
-
             # переключение режима отладки
-            if self.ui.switch_debug:
+            if ui_state.switch_debug:
                 if common._debug:  # были в режиме отладки
                     self.hold_state = False
-                    self.ui.clear_screen()
                 else:
                     self.hold_state = True
                 common._debug = not common._debug
-                self.ui.debug = common._debug
 
             # шаг игры, если надо
-            if not self.hold_state or self.ui.one_step:
+            if not self.hold_state or ui_state.one_step:
                 self._step += 1
                 self._game_step()
                 if common._debug:
                     common.log.debug('=' * 20, self._step, '=' * 10)
 
             # отрисовка
-            self.ui.draw()
+            self.ui.draw() # TODO это надо сделать в самом ui
 
         print 'Thank for playing robopycode! See you in the future :)'
 

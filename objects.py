@@ -17,10 +17,14 @@ class GameObject():
         Glavnyj igrovoj ob'ekt
     """
     radius = 1
-    __name__ = 'GameObject'
     _objects_count = 0
     states = ['stopped', 'turning', 'moving']
     container = None
+    _animated = True
+
+    @property
+    def classname(self):
+        return self.__class__.__name__
 
     def __init__(self, pos, revolvable=True, angle=None):
         self.coord = geometry.Point(pos)
@@ -71,9 +75,6 @@ class GameObject():
         else:
             common.log.debug('%s:%s:%s' % (self.__class__.__name__,
                                            self.id, pattern), *args)
-
-    def type(self):
-        return self.__name__
 
     def _need_turning(self):
         return self.revolvable and int(self.course) != int(self.vector.angle)
@@ -263,7 +264,6 @@ class GameObject():
         pass
 
 class Gun:
-    __name__ = 'Gun'
     states = ['reloading', 'loaded']
 
     def __init__(self, owner):
@@ -305,7 +305,8 @@ class Tank(GameObject):
 
         Tank. Mozhet ezdit' po jekranu.
     """
-    __name__ = 'Tank'
+    _selectable = True# обьект можно выделить мышкой
+
     _img_file_name = 'tank_blue.png'
     _layer = 2
     radius = 32  # collision detect
@@ -465,8 +466,8 @@ class StaticTarget(Tank):
 
         Statichnaja mishen'
     """
-    __name__ = 'StaticTarget'
     _img_file_name = 'tank_red.png'
+    _selectable = False # обьект нельзя выделить мышкой
 
     def __init__(self, pos=None, angle=None, auto_fire=False):
         Tank.__init__(self, pos=pos, angle=angle)
@@ -483,8 +484,8 @@ class Target(Tank):
 
         Mishen'
     """
-    __name__ = 'Target'
     _img_file_name = 'tank_red.png'
+    _selectable = False # обьект нельзя выделить мышкой
 
     def __init__(self, pos=None, angle=None, auto_fire=False):
         Tank.__init__(self, pos=pos, angle=angle)
@@ -503,7 +504,7 @@ class Target(Tank):
             self.fire()
 
     def collided_with(self, obj):
-        self.debug("collided_with %s", obj._id)
+        self.debug("collided_with %s", obj.id)
         self.move_at(common.random_point())
 
 
@@ -513,10 +514,10 @@ class Shot(GameObject):
 
         Snarjad. Letit po prjamoj poka ne vstretit cel'.
     """
-    __name__ = 'Shot'
     _img_file_name = 'shot.png'
     _layer = 3
     radius = 4  # collision detect
+    _selectable = False # обьект нельзя выделить мышкой
 
     def __init__(self, pos, direction):
         """
@@ -536,7 +537,7 @@ class Shot(GameObject):
             vzryv!
         """
         SmallExplosion(self.coord, obj)  # взрыв на месте снаряда
-#        self.kill()  TODO as RoboSprite instance
+        self.container.remove(self)
         if self.owner:
             self.owner.shot = None
             self.owner = None
@@ -545,7 +546,6 @@ class Shot(GameObject):
         self.debug('%s', self)
         self.life -= 1
         if not self.life or not self._state == 'moving':
-#            self.kill() TODO as RoboSprite instance
             self.owner.shot = None
             self.container.remove(self)
         GameObject._game_step(self)
@@ -557,12 +557,13 @@ class Explosion(GameObject):
 
         Vzryv tanka.
     """
-    __name__ = 'Explosion'
     _img_file_name = 'explosion.png'
     _layer = user_interface._max_layers
     radius = 0  # collision detect
     defaultlife = 12
     animcycle = 3
+    _selectable = False # обьект нельзя выделить мышкой
+    _animated = True # надо анимировать обьект TODO сделать анимацию в гифке
 
     def __init__(self, explosion_coord, hitted_obj):
         GameObject.__init__(self, explosion_coord, revolvable=False)
@@ -575,9 +576,8 @@ class Explosion(GameObject):
 
     def _game_step(self):
         self.life -= 1
-        self.image = self.images[self.life // self.animcycle % 2]
+#        self.image = self.images[self.life // self.animcycle % 2]
         if self.life <= 0:
-#            self.kill() TODO as RoboSprite instance
             self.container.remove(self)
             self.owner.explosion = None
             self.owner = None
@@ -590,5 +590,4 @@ class SmallExplosion(Explosion):
 
         Vzryv snarjada.
     """
-    __name__ = 'SmallExplosion'
     _img_file_name = 'small_explosion.png'
