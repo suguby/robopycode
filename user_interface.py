@@ -217,6 +217,9 @@ class UserInterface:
         if ui_state.mouse_buttons[0] and not self.mouse_buttons[0]:
             # mouse down
             for obj in self.all:
+                if not hasattr(obj, 'state'):
+                    # у FPS этого нету, может пробегаться по списку игровых обьектов?
+                    continue
                 if obj.state._selectable and obj.rect.collidepoint(ui_state.mouse_pos):
                     # координаты экранные
                     obj._selected = not obj._selected
