@@ -265,15 +265,16 @@ class UserInterface:
 
     def _draw_radar_outline(self, obj):
         from math import pi, cos, sin
-        angle_r = (obj.course - constants.tank_radar_angle // 2) / 180.0 * pi
-        angle_l = (obj.course + constants.tank_radar_angle // 2) / 180.0 * pi
+        angle_r = (obj.state.course - constants.tank_radar_angle // 2) / 180.0 * pi
+        angle_l = (obj.state.course + constants.tank_radar_angle // 2) / 180.0 * pi
+        coord = obj.state.coord
         points = [
-            Point(obj.coord.x + cos(angle_r) * constants.tank_radar_range,
-                  obj.coord.y + sin(angle_r) * constants.tank_radar_range),
-            Point(obj.coord.x + cos(angle_l) * constants.tank_radar_range,
-                  obj.coord.y + sin(angle_l) * constants.tank_radar_range),
-            Point(obj.coord.x,
-                  obj.coord.y)
+            Point(coord.x + cos(angle_r) * constants.tank_radar_range,
+                  coord.y + sin(angle_r) * constants.tank_radar_range),
+            Point(coord.x + cos(angle_l) * constants.tank_radar_range,
+                  coord.y + sin(angle_l) * constants.tank_radar_range),
+            Point(coord.x,
+                  coord.y)
         ]
         points = [x.to_screen() for x in points]
         aalines(self.screen,
@@ -294,10 +295,9 @@ class UserInterface:
             self.screen.blit(self.background, (0, 0))
             dirty = self.all.draw(self.screen)
             for obj in self.all:
-                if not hasattr(obj, 'state'):
-                    # у FPS этого нету, может пробегаться по списку игровых обьектов?
-                    continue
-                if obj.state.classname == 'Tank' and obj._selected:
+                if hasattr(obj, 'state') and \
+                   hasattr(obj.state, 'gun_heat') and \
+                   obj._selected:
                     self._draw_radar_outline(obj)
             pygame.display.flip()
         else:
