@@ -20,7 +20,6 @@ class ObjectState:
         'armor',
         'gun_heat',
         'revolvable',
-        '_detected_by',
         '_img_file_name',
         '_layer',
         '_selectable',
@@ -33,6 +32,13 @@ class ObjectState:
             if hasattr(obj, param):
                 val = getattr(obj, param)
                 setattr(self, param, val)
+        if hasattr(obj, '_detected_by'):
+            self._detected_by = [
+                detected_by_obj.id
+                for detected_by_obj in obj._detected_by
+            ]
+        else:
+            self._detected_by = []
 
 class Scene:
     """
@@ -120,7 +126,7 @@ class Scene:
             for obj in self.grounds + self.shots + self.exploisons:
                 objects_state[obj.id] = ObjectState(obj)
             self.ui.register(objects_state)
-#            common.to_console("Scene: passed UI %s objects", len(objects_state))
+#            common.to_console("Scene: passed UI %s objects", len(game_objects))
 
             # получение состояния клавы и мыши
             ui_state = self.ui.get_ui_state()

@@ -90,14 +90,14 @@ class RoboSprite(DirtySprite):
                 self._debug_color, outline_rect, 1)
 
     def _show_tank_id(self):
-        if self.state.classname == 'Tank':
+        if hasattr(self, 'state') and hasattr(self.state, 'gun_heat'):
             id_image = self._id_font.render(str(self.id),
                 0,
                 self._debug_color)
             self.image.blit(id_image, (5, 5))
 
     def _show_detection(self):
-        if getattr(self.state, '_detected_by', []):
+        if hasattr(self.state, '_detected_by'):
             radius = 0
             for obj in self.state._detected_by:
                 if obj._selected:
@@ -178,34 +178,43 @@ class UserInterface:
         self._step = 0
         self.debug = False
 
-        self.objects_state = {}
+        self.game_objects = {}
 
     def register(self, objects_state):
         """
             зарегестрировать состояния обьектов игры, создать/удалить спрайты если надо
         """
         new_ids = set(objects_state)
-        old_ids = set(self.objects_state)
-        new_objects_state = {}
+        old_ids = set(self.game_objects)
+        new_game_objects = {}
 
         for id in old_ids - new_ids:
             # старые объекты - убиваем спрайты
-            sprite = self.objects_state[id]
+            sprite = self.game_objects[id]
             sprite.kill()
 
         for id in new_ids - old_ids:
             # новые объекты - создаем спрайты
             sprite = RoboSprite(id=id, state=objects_state[id])
-            new_objects_state[id] = sprite
+            new_game_objects[id] = sprite
 
         for id in old_ids & new_ids:
             # существующие объекты - обновляем состояния
-            sprite = self.objects_state[id]
+            sprite = self.game_objects[id]
             state = objects_state[id]
             sprite.update_state(state)
-            new_objects_state[id] = sprite
+            new_game_objects[id] = sprite
 
-        self.objects_state = new_objects_state
+        self.game_objects = new_game_objects
+
+        # преобразуем список айдишников в список обьектов
+        for obj_id in self.game_objects:
+            obj = self.game_objects[obj_id]
+            obj.state._detected_by = [
+                self.game_objects[detected_by_id]
+                for detected_by_id in obj.state._detected_by
+                if detected_by_id in self.game_objects
+            ]
 
     def _select_objects(self, ui_state):
         """
