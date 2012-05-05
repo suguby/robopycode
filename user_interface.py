@@ -70,12 +70,12 @@ class RoboSprite(DirtySprite):
         return str(self)
 
     def _show_armor(self):
-        if hasattr(self, 'armor') and self.armor > 0:
+        if hasattr(self.state, 'armor') and self.state.armor > 0:
             bar_px = int((self.state.armor / 100.0) * self.rect.width)
             line(self.image, (0, 255, 70), (0, 3), (bar_px, 3), 3)
 
     def _show_gun_heat(self):
-        if hasattr(self, 'gun') and self.state.gun_heat > 0:
+        if hasattr(self.state, 'gun_heat') and self.state.gun_heat > 0:
             max_heat = float(constants.tank_gun_heat_after_fire)
             bar_px = int(((max_heat - self.state.gun_heat)
                           / max_heat) * self.rect.width)
@@ -91,7 +91,7 @@ class RoboSprite(DirtySprite):
 
     def _show_tank_id(self):
         if self.state.classname == 'Tank':
-            id_image = self._id_font.render(str(self._id),
+            id_image = self._id_font.render(str(self.id),
                 0,
                 self._debug_color)
             self.image.blit(id_image, (5, 5))
@@ -117,7 +117,7 @@ class RoboSprite(DirtySprite):
         self.rect.center = self.state.coord.to_screen()
         if self.state.revolvable:
             self.image = _rotate_about_center(self.images[0],
-                                              self._img_file_name,
+                                              self.state._img_file_name,
                                               self.state.course)
         elif self.state._animated:
             self._drawed_count += 1
@@ -290,11 +290,14 @@ class UserInterface:
         self.all.update()
 
         #draw the scene
-        if self.debug:
+        if common._debug:
             self.screen.blit(self.background, (0, 0))
             dirty = self.all.draw(self.screen)
             for obj in self.all:
-                if obj.type() == 'Tank' and obj._selected:
+                if not hasattr(obj, 'state'):
+                    # у FPS этого нету, может пробегаться по списку игровых обьектов?
+                    continue
+                if obj.state.classname == 'Tank' and obj._selected:
                     self._draw_radar_outline(obj)
             pygame.display.flip()
         else:
