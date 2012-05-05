@@ -73,7 +73,7 @@ class GameObject():
             if self._selected:
                 common.log.debug('%s:%s' % (self.id, pattern), *args)
         else:
-            common.log.debug('%s:%s:%s' % (self.__class__.__name__,
+            common.log.debug('%s:%s:%s' % (self.classname,
                                            self.id, pattern), *args)
 
     def _need_turning(self):

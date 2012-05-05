@@ -14,14 +14,18 @@ class Logger:
     """
 
     def debug(self, pattern, *args):
-        if _debug:
-            pattern = str(pattern)
-            try:
-                print pattern % args
-            except TypeError:
-                print pattern, ' '.join([str(arg) for arg in args])
+        to_console(pattern, *args)
 
 log = Logger()
+
+
+def to_console(pattern, *args):
+    if _debug:
+        pattern = str(pattern)
+        try:
+            print pattern % args
+        except TypeError:
+            print pattern, ' '.join([str(arg) for arg in args])
 
 
 def random_point(object_radius=32):

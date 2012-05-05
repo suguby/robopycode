@@ -120,6 +120,7 @@ class Scene:
             for obj in self.grounds + self.shots + self.exploisons:
                 objects_state[obj.id] = ObjectState(obj)
             self.ui.register(objects_state)
+            common.to_console("Scene: passed UI %s objects", len(objects_state))
 
             # получение состояния клавы и мыши
             ui_state = self.ui.get_ui_state()
