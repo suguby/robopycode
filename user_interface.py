@@ -44,7 +44,7 @@ class RoboSprite(DirtySprite):
         Sprite.__init__(self, self.sprite_containers)
 
         image = load_image(self.state._img_file_name, -1)
-        self.images = [image, flip(image, 1, 0)]
+        self.images = [image, flip(image, 1, 0), flip(image, 0, 1), flip(image, 1, 1)]
         self.image = self.images[0].copy()
         self.rect = self.image.get_rect()
         self._debug_color = (
@@ -121,7 +121,7 @@ class RoboSprite(DirtySprite):
                                               self.state.course)
         elif self.state._animated:
             self._drawed_count += 1
-            self.image = self.images[self._drawed_count // self._animcycle % 2]
+            self.image = self.images[self._drawed_count // self._animcycle % 4]
         else:
             self.image = self.images[0].copy()
 
