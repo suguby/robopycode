@@ -132,6 +132,8 @@ class Scene:
             ui_state = self.ui.get_ui_state()
             if ui_state.the_end:
                 break
+            for obj in self.grounds:
+                obj._selected = obj.id in ui_state.selected_ids
 
             # переключение режима отладки
             if ui_state.switch_debug:

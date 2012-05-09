@@ -225,20 +225,19 @@ class UserInterface:
 
         if ui_state.mouse_buttons[0] and not self.mouse_buttons[0]:
             # mouse down
-            for obj in self.all:
-                if not hasattr(obj, 'state'):
-                    # у FPS этого нету, может пробегаться по списку игровых обьектов?
-                    continue
+            for obj_id, obj in self.game_objects.iteritems():
                 if obj.state._selectable and obj.rect.collidepoint(ui_state.mouse_pos):
                     # координаты экранные
                     obj._selected = not obj._selected
-                #                    obj.debug('select %s', obj)
-                #                        self.selected = obj
                 elif not common._debug:
                     # возможно выделение множества танков
                     # только на режиме отладки
                     obj._selected = False
         self.mouse_buttons = ui_state.mouse_buttons
+        ui_state.selected_ids = [
+            obj_id for obj_id in self.game_objects
+            if self.game_objects[obj_id]._selected
+        ]
 
     def get_ui_state(self):
         ui_state = UserInterfaceState()
@@ -265,7 +264,7 @@ class UserInterface:
         if ui_state.switch_debug and common._debug:
             # были в режиме отладки
             self.clear_screen()
-#        self.ui.debug = common._debug # TODO это надо сделать в самом ui
+
         return ui_state
 
     def clear_screen(self):
