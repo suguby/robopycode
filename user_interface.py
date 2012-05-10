@@ -180,9 +180,10 @@ class UserInterface:
 
         self.game_objects = {}
 
-    def register(self, objects_state):
+    def communicate(self, objects_state):
         """
             зарегестрировать состояния обьектов игры, создать/удалить спрайты если надо
+            вернуть состояния клавиатуры и мыши
         """
         new_ids = set(objects_state)
         old_ids = set(self.game_objects)
@@ -208,64 +209,62 @@ class UserInterface:
         self.game_objects = new_game_objects
 
         # преобразуем список айдишников в список обьектов
-        for obj_id in self.game_objects:
-            obj = self.game_objects[obj_id]
+        for obj_id, obj in self.game_objects.iteritems():
             obj.state._detected_by = [
                 self.game_objects[detected_by_id]
                 for detected_by_id in obj.state._detected_by
                 if detected_by_id in self.game_objects
             ]
 
-    def _select_objects(self, ui_state):
+        self.ui_state = UserInterfaceState()
+
+        for event in pygame.event.get():
+            if event.type == KEYDOWN and event.key == K_f:
+                self.fps_meter.show = not self.fps_meter.show
+
+            if (event.type == QUIT)\
+               or (event.type == KEYDOWN and event.key == K_ESCAPE)\
+            or (event.type == KEYDOWN and event.key == K_q):
+                self.ui_state.the_end = True
+            if event.type == KEYDOWN and event.key == K_d:
+                self.ui_state.switch_debug = True
+            if event.type == KEYDOWN and event.key == K_s:
+                self.ui_state.one_step = True
+        key = pygame.key.get_pressed()
+        if key[pygame.K_g]:  # если нажата и удерживается
+            self.ui_state.one_step = True
+        pygame.event.pump()
+
+        self._select_objects()
+
+        if self.ui_state.switch_debug and common._debug:
+            # были в режиме отладки
+            self.clear_screen()
+
+        return self.ui_state
+
+    def _select_objects(self):
         """
             выделение обьектов мышкой
         """
-        ui_state.mouse_pos = pygame.mouse.get_pos()
-        ui_state.mouse_buttons = pygame.mouse.get_pressed()
+        self.ui_state.mouse_pos = pygame.mouse.get_pos()
+        self.ui_state.mouse_buttons = pygame.mouse.get_pressed()
 
-        if ui_state.mouse_buttons[0] and not self.mouse_buttons[0]:
+        if self.ui_state.mouse_buttons[0] and not self.mouse_buttons[0]:
             # mouse down
             for obj_id, obj in self.game_objects.iteritems():
-                if obj.state._selectable and obj.rect.collidepoint(ui_state.mouse_pos):
+                if obj.state._selectable and obj.rect.collidepoint(self.ui_state.mouse_pos):
                     # координаты экранные
                     obj._selected = not obj._selected
                 elif not common._debug:
                     # возможно выделение множества танков
                     # только на режиме отладки
                     obj._selected = False
-        self.mouse_buttons = ui_state.mouse_buttons
-        ui_state.selected_ids = [
-            obj_id for obj_id in self.game_objects
-            if self.game_objects[obj_id]._selected
+        self.mouse_buttons = self.ui_state.mouse_buttons
+        self.ui_state.selected_ids = [
+            _id for _id in self.game_objects
+            if self.game_objects[_id]._selected
         ]
-
-    def get_ui_state(self):
-        ui_state = UserInterfaceState()
-
-        for event in pygame.event.get():
-            if event.type == KEYDOWN and event.key == K_f:
-                self.fps_meter.show = not self.fps_meter.show
-
-            if (event.type == QUIT) \
-                or (event.type == KEYDOWN and event.key == K_ESCAPE) \
-                or (event.type == KEYDOWN and event.key == K_q):
-                ui_state.the_end = True
-            if event.type == KEYDOWN and event.key == K_d:
-                ui_state.switch_debug = True
-            if event.type == KEYDOWN and event.key == K_s:
-                ui_state.one_step = True
-        key = pygame.key.get_pressed()
-        if key[pygame.K_g]:  # если нажата и удерживается
-            ui_state.one_step = True
-        pygame.event.pump()
-
-        self._select_objects(ui_state)
-
-        if ui_state.switch_debug and common._debug:
-            # были в режиме отладки
-            self.clear_screen()
-
-        return ui_state
 
     def clear_screen(self):
         self.screen.blit(self.background, (0, 0))

@@ -125,13 +125,11 @@ class Scene:
             objects_state = {}
             for obj in self.grounds + self.shots + self.exploisons:
                 objects_state[obj.id] = ObjectState(obj)
-            self.ui.register(objects_state)
-#            common.to_console("Scene: passed UI %s objects", len(game_objects))
+            ui_state = self.ui.communicate(objects_state)
 
-            # получение состояния клавы и мыши
-            ui_state = self.ui.get_ui_state()
             if ui_state.the_end:
                 break
+
             for obj in self.grounds:
                 obj._selected = obj.id in ui_state.selected_ids
 
