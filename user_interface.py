@@ -9,11 +9,13 @@ from pygame.transform import flip
 from pygame.draw import line, circle, rect, aalines
 from pygame.display import set_caption, set_mode
 from pygame.time import Clock
+import time
 import common
 import constants
 import os
 import random
 from geometry import Point
+import thread
 
 _debug = common._debug
 log = common.log
@@ -180,68 +182,80 @@ class UserInterface:
 
         self.game_objects = {}
 
+        thread.start_new_thread(self.go, ())
+
+
+    def go(self):
+        while True:
+            try:
+                self.draw()
+                time.sleep(0.01)
+            except Exception, exc:
+                print exc
+
     def communicate(self, objects_state):
         """
             зарегестрировать состояния обьектов игры, создать/удалить спрайты если надо
             вернуть состояния клавиатуры и мыши
         """
-        new_ids = set(objects_state)
-        old_ids = set(self.game_objects)
-        new_game_objects = {}
+        with thread.allocate_lock():
+            new_ids = set(objects_state)
+            old_ids = set(self.game_objects)
+            new_game_objects = {}
 
-        for id in old_ids - new_ids:
-            # старые объекты - убиваем спрайты
-            sprite = self.game_objects[id]
-            sprite.kill()
+            for id in old_ids - new_ids:
+                # старые объекты - убиваем спрайты
+                sprite = self.game_objects[id]
+                sprite.kill()
 
-        for id in new_ids - old_ids:
-            # новые объекты - создаем спрайты
-            sprite = RoboSprite(id=id, state=objects_state[id])
-            new_game_objects[id] = sprite
+            for id in new_ids - old_ids:
+                # новые объекты - создаем спрайты
+                sprite = RoboSprite(id=id, state=objects_state[id])
+                new_game_objects[id] = sprite
 
-        for id in old_ids & new_ids:
-            # существующие объекты - обновляем состояния
-            sprite = self.game_objects[id]
-            state = objects_state[id]
-            sprite.update_state(state)
-            new_game_objects[id] = sprite
+            for id in old_ids & new_ids:
+                # существующие объекты - обновляем состояния
+                sprite = self.game_objects[id]
+                state = objects_state[id]
+                sprite.update_state(state)
+                new_game_objects[id] = sprite
 
-        self.game_objects = new_game_objects
+            self.game_objects = new_game_objects
 
-        # преобразуем список айдишников в список обьектов
-        for obj_id, obj in self.game_objects.iteritems():
-            obj.state._detected_by = [
-                self.game_objects[detected_by_id]
-                for detected_by_id in obj.state._detected_by
-                if detected_by_id in self.game_objects
-            ]
+            # преобразуем список айдишников в список обьектов
+            for obj_id, obj in self.game_objects.iteritems():
+                obj.state._detected_by = [
+                    self.game_objects[detected_by_id]
+                    for detected_by_id in obj.state._detected_by
+                    if detected_by_id in self.game_objects
+                ]
 
-        self.ui_state = UserInterfaceState()
+            self.ui_state = UserInterfaceState()
 
-        for event in pygame.event.get():
-            if event.type == KEYDOWN and event.key == K_f:
-                self.fps_meter.show = not self.fps_meter.show
+            for event in pygame.event.get():
+                if event.type == KEYDOWN and event.key == K_f:
+                    self.fps_meter.show = not self.fps_meter.show
 
-            if (event.type == QUIT)\
-               or (event.type == KEYDOWN and event.key == K_ESCAPE)\
-            or (event.type == KEYDOWN and event.key == K_q):
-                self.ui_state.the_end = True
-            if event.type == KEYDOWN and event.key == K_d:
-                self.ui_state.switch_debug = True
-            if event.type == KEYDOWN and event.key == K_s:
+                if (event.type == QUIT)\
+                   or (event.type == KEYDOWN and event.key == K_ESCAPE)\
+                or (event.type == KEYDOWN and event.key == K_q):
+                    self.ui_state.the_end = True
+                if event.type == KEYDOWN and event.key == K_d:
+                    self.ui_state.switch_debug = True
+                if event.type == KEYDOWN and event.key == K_s:
+                    self.ui_state.one_step = True
+            key = pygame.key.get_pressed()
+            if key[pygame.K_g]:  # если нажата и удерживается
                 self.ui_state.one_step = True
-        key = pygame.key.get_pressed()
-        if key[pygame.K_g]:  # если нажата и удерживается
-            self.ui_state.one_step = True
-        pygame.event.pump()
+            pygame.event.pump()
 
-        self._select_objects()
+            self._select_objects()
 
-        if self.ui_state.switch_debug and common._debug:
-            # были в режиме отладки
-            self.clear_screen()
+            if self.ui_state.switch_debug and common._debug:
+                # были в режиме отладки
+                self.clear_screen()
 
-        return self.ui_state
+            return self.ui_state
 
     def _select_objects(self):
         """
@@ -295,17 +309,19 @@ class UserInterface:
         """
 
         #update all the sprites
-        self.all.update()
+        with thread.allocate_lock():
+            self.all.update()
 
         #draw the scene
         if common._debug:
             self.screen.blit(self.background, (0, 0))
             dirty = self.all.draw(self.screen)
             for obj in self.all:
-                if hasattr(obj, 'state') and \
-                   hasattr(obj.state, 'gun_heat') and \
-                   obj._selected:
-                    self._draw_radar_outline(obj)
+                with thread.allocate_lock():
+                    if hasattr(obj, 'state') and \
+                       hasattr(obj.state, 'gun_heat') and \
+                       obj._selected:
+                        self._draw_radar_outline(obj)
             pygame.display.flip()
         else:
             # clear/erase the last drawn sprites

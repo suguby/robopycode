@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import time
 
 from user_interface import UserInterface
 import geometry
@@ -149,7 +150,8 @@ class Scene:
                     common.log.debug('=' * 20, self._step, '=' * 10)
 
             # отрисовка
-            self.ui.draw() # TODO это надо сделать в самом ui
+#            self.ui.draw()
+            time.sleep(0.01)
 
         print 'Thank for playing robopycode! See you in the future :)'
 
