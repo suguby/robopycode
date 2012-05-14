@@ -187,8 +187,10 @@ class UserInterface:
             try:
                 if self.child_conn.poll(0.01):
                     objects_state = self.child_conn.recv()
-                    ui_state = self.communicate(objects_state)
-                    self.child_conn.send(ui_state)
+                    self.communicate(objects_state)
+                    self.child_conn.send(self.ui_state)
+                if self.ui_state.the_end:
+                    break
                 self.draw()
             except Exception, exc:
                 print exc
@@ -253,8 +255,6 @@ class UserInterface:
         if self.ui_state.switch_debug and common._debug:
             # были в режиме отладки
             self.clear_screen()
-
-        return self.ui_state
 
     def _select_objects(self):
         """

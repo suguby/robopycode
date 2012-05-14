@@ -141,7 +141,7 @@ class Scene:
 
             if ui_state:
                 if ui_state.the_end:
-                    self.ui.terminate()
+                    self.ui.join()
                     break
 
                 for obj in self.grounds:
