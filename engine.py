@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import time
 
+import time
 from user_interface import UserInterface
 import geometry
 import objects
@@ -9,6 +9,8 @@ import common
 import math
 import constants
 import events
+from multiprocessing import Process, Pipe
+
 
 class ObjectState:
     """
@@ -55,9 +57,14 @@ class Scene:
         objects.Explosion.container = self.exploisons
         objects.Tank.container = self.grounds
 
-        self.ui = UserInterface(name)
         self.hold_state = False  # режим пошаговой отладки
         self._step = 0
+
+        ui = UserInterface(name)
+        self.parent_conn, child_conn = Pipe()
+        self.ui = Process(target=ui.run, args=(child_conn,))
+        self.ui.start()
+
 
     def _game_step(self):
         """
@@ -126,31 +133,35 @@ class Scene:
             objects_state = {}
             for obj in self.grounds + self.shots + self.exploisons:
                 objects_state[obj.id] = ObjectState(obj)
-            ui_state = self.ui.communicate(objects_state)
+            self.parent_conn.send(objects_state)
+            # ждем пока ответят состоянием клавы
+            ui_state = None
+            if self.parent_conn.poll():
+                ui_state = self.parent_conn.recv()
 
-            if ui_state.the_end:
-                break
+            if ui_state:
+                if ui_state.the_end:
+                    self.ui.terminate()
+                    break
 
-            for obj in self.grounds:
-                obj._selected = obj.id in ui_state.selected_ids
+                for obj in self.grounds:
+                    obj._selected = obj.id in ui_state.selected_ids
 
-            # переключение режима отладки
-            if ui_state.switch_debug:
-                if common._debug:  # были в режиме отладки
-                    self.hold_state = False
-                else:
-                    self.hold_state = True
-                common._debug = not common._debug
+                # переключение режима отладки
+                if ui_state.switch_debug:
+                    if common._debug:  # были в режиме отладки
+                        self.hold_state = False
+                    else:
+                        self.hold_state = True
+                    common._debug = not common._debug
 
             # шаг игры, если надо
-            if not self.hold_state or ui_state.one_step:
+            if not self.hold_state or (ui_state and ui_state.one_step):
                 self._step += 1
                 self._game_step()
                 if common._debug:
                     common.log.debug('=' * 20, self._step, '=' * 10)
 
-            # отрисовка
-#            self.ui.draw()
             time.sleep(0.01)
 
         print 'Thank for playing robopycode! See you in the future :)'
