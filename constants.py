@@ -23,7 +23,9 @@ shot_life = 60  # in game ticks
 
 # GUI constants
 background_color = (85, 107, 47)
-max_fps = 60
-#max_fps = 0
 resolution = (field_width, field_height)
 data_path = os.path.join(os.path.dirname(__file__), 'data')
+
+# TODO теперь это - минимальное время рассчета состояния, FPS пусть зашкаливает в отдельном потоке
+max_fps = 60
+game_step_min_time = 0.01

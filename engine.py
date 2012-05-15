@@ -125,23 +125,26 @@ class Scene:
         for obj in self.shots + self.exploisons:
             obj._game_step()
 
+        if common._debug:
+            common.log.debug('=' * 20, self._step, '=' * 10)
+
+
     def go(self):
         """
             Main game cycle - the game begin!
         """
         while True:
-            objects_state = {}
-            for obj in self.grounds + self.shots + self.exploisons:
-                objects_state[obj.id] = ObjectState(obj)
-            self.parent_conn.send(objects_state)
-            # ждем пока ответят состоянием клавы
+            cycle_begin = time.time()
+
+            # проверяем, есть ли новое состояние UI на том конце трубы
             ui_state = None
-            if self.parent_conn.poll():
+            while self.parent_conn.poll(0):
+                # состояний м.б. много, оставляем только последнее
                 ui_state = self.parent_conn.recv()
 
+            # состояние UI изменилось - отрабатываем
             if ui_state:
                 if ui_state.the_end:
-                    self.ui.join()
                     break
 
                 for obj in self.grounds:
@@ -159,10 +162,22 @@ class Scene:
             if not self.hold_state or (ui_state and ui_state.one_step):
                 self._step += 1
                 self._game_step()
-                if common._debug:
-                    common.log.debug('=' * 20, self._step, '=' * 10)
+                # отсылаем новое состояние обьектов в UI
+                objects_state = {}
+                for obj in self.grounds + self.shots + self.exploisons:
+                    objects_state[obj.id] = ObjectState(obj)
+                self.parent_conn.send(objects_state)
 
-            time.sleep(0.01)
+            # вычисляем остаток времени на сон
+            cycle_time = time.time() - cycle_begin
+            cycle_time_rest  = constants.game_step_min_time - cycle_time
+            if cycle_time_rest > 0:
+                # о! есть время поспать... :)
+#                print "sleep for %.6f" % cycle_time_rest
+                time.sleep(cycle_time_rest)
+
+        # ждем пока потомки помрут
+        self.ui.join()
 
         print 'Thank for playing robopycode! See you in the future :)'
 

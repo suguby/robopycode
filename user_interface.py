@@ -135,7 +135,8 @@ class RoboSprite(DirtySprite):
 
 class UserInterfaceState:
     """
-        Класс для передачи состояния клавиатуры и мыши
+        Класс для передачи состояния UI
+        (обработанные нажатия клавиш и выбор обьектов мышкой)
     """
     def __init__(self):
         self.one_step = False
@@ -144,6 +145,16 @@ class UserInterfaceState:
         self.mouse_pos = None
         self.mouse_buttons = None
         self.selected_ids = []
+
+    def __eq__(self, other):
+        return not self.__ne__(other)
+
+    def __ne__(self, other):
+        return\
+        self.one_step != other.one_step or\
+        self.switch_debug != other.switch_debug or\
+        self.the_end != other.the_end or\
+        self.selected_ids != other.selected_ids
 
 class UserInterface:
     """
@@ -180,25 +191,35 @@ class UserInterface:
         self.debug = False
 
         self.game_objects = {}
+        self.ui_state = UserInterfaceState()
 
     def run(self, child_conn):
         self.child_conn = child_conn
         while True:
             try:
-                if self.child_conn.poll(0.01):
+                # проверяем есть ли данные на том конце трубы
+                if self.child_conn.poll(0):
+                    # данные есть - считываем и обновляем состояие
                     objects_state = self.child_conn.recv()
-                    self.communicate(objects_state)
+                    self.update_state(objects_state)
+                # проверяем - изменилось ли что-то у пользователя
+                if self.ui_state_changed() or self.ui_state.one_step:
+                    # изменилось - отсылаем состояние в трубу
                     self.child_conn.send(self.ui_state)
-                if self.ui_state.the_end:
-                    break
+                    # пользователь захотел закончить - выходим
+                    if self.ui_state.the_end:
+                        break
                 self.draw()
             except Exception, exc:
                 print exc
+        # очистка
+        for sprite in self.all:
+            sprite.kill()
+        pygame.quit()
 
-    def communicate(self, objects_state):
+    def update_state(self, objects_state):
         """
-            зарегестрировать состояния обьектов игры, создать/удалить спрайты если надо
-            вернуть состояния клавиатуры и мыши
+            обновить состояния обьектов игры, создать/удалить спрайты если надо
         """
         new_ids = set(objects_state)
         old_ids = set(self.game_objects)
@@ -231,6 +252,12 @@ class UserInterface:
                 if detected_by_id in self.game_objects
             ]
 
+    def ui_state_changed(self):
+        """
+            проверить изменилось ли и получить состояние UI
+            - нажатые клавиши и выбранные обьекты
+        """
+        prev_ui_state = self.ui_state
         self.ui_state = UserInterfaceState()
 
         for event in pygame.event.get():
@@ -255,6 +282,9 @@ class UserInterface:
         if self.ui_state.switch_debug and common._debug:
             # были в режиме отладки
             self.clear_screen()
+
+        return self.ui_state != prev_ui_state
+
 
     def _select_objects(self):
         """
