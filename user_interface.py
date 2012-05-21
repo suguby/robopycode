@@ -284,9 +284,11 @@ class UserInterface:
 
         self._select_objects()
 
-        if self.ui_state.switch_debug and common._debug:
-            # были в режиме отладки
-            self.clear_screen()
+        if self.ui_state.switch_debug:
+            if common._debug:
+                # были в режиме отладки
+                self.clear_screen()
+            common._debug = not common._debug # переключаем и тут тоже - потому что отдельный процесс
 
         return self.ui_state != prev_ui_state
 
