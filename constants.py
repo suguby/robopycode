@@ -28,4 +28,4 @@ data_path = os.path.join(os.path.dirname(__file__), 'data')
 
 # TODO теперь это - минимальное время рассчета состояния, FPS пусть зашкаливает в отдельном потоке
 max_fps = 60
-game_step_min_time = 0.01
+game_step_min_time = 0.015

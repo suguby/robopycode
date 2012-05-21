@@ -197,10 +197,13 @@ class UserInterface:
         self.child_conn = child_conn
         while True:
             try:
+                objects_state = None
                 # проверяем есть ли данные на том конце трубы
-                if self.child_conn.poll(0):
-                    # данные есть - считываем и обновляем состояие
+                while self.child_conn.poll(0):
+                    # данные есть - считываем все что есть
                     objects_state = self.child_conn.recv()
+                if objects_state:
+                    # были получены данные - обновляемся
                     self.update_state(objects_state)
                 # проверяем - изменилось ли что-то у пользователя
                 if self.ui_state_changed() or self.ui_state.one_step:
@@ -209,6 +212,7 @@ class UserInterface:
                     # пользователь захотел закончить - выходим
                     if self.ui_state.the_end:
                         break
+                # отрисовываемся
                 self.draw()
             except Exception, exc:
                 print exc
