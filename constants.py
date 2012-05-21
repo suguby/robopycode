@@ -26,6 +26,5 @@ background_color = (85, 107, 47)
 resolution = (field_width, field_height)
 data_path = os.path.join(os.path.dirname(__file__), 'data')
 
-# TODO теперь это - минимальное время рассчета состояния, FPS пусть зашкаливает в отдельном потоке
-max_fps = 60
+# engine constants
 game_step_min_time = 0.015

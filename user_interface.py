@@ -160,6 +160,8 @@ class UserInterface:
     """
         Show sprites and get feedback from user
     """
+    _max_fps = 50 # ограничиваем для стабильности отклика клавы/мыши
+
     def __init__(self, name):
         """
             Make game window
@@ -185,7 +187,6 @@ class UserInterface:
         clock = Clock()
 
         self.fps_meter = Fps(color=(255, 255, 0))
-        self.max_fps = constants.max_fps
 
         self._step = 0
         self.debug = False
@@ -361,7 +362,7 @@ class UserInterface:
             pygame.display.update(dirty)
 
         #cap the framerate
-        clock.tick(self.max_fps)
+        clock.tick(self._max_fps)
         return True
 
 
