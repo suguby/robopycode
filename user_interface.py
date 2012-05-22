@@ -22,6 +22,7 @@ _max_layers = 5
 _sprites_by_layer = [Group() for i in range(_max_layers + 1)]
 _images_cash = {}
 
+
 class RoboSprite(DirtySprite):
     """
         Show sprites on screen
@@ -45,7 +46,8 @@ class RoboSprite(DirtySprite):
         Sprite.__init__(self, self.sprite_containers)
 
         image = load_image(self.state._img_file_name, -1)
-        self.images = [image, flip(image, 1, 0), flip(image, 0, 1), flip(image, 1, 1)]
+        self.images = [image, flip(image, 1, 0),
+                       flip(image, 0, 1), flip(image, 1, 1)]
         self.image = self.images[0].copy()
         self.rect = self.image.get_rect()
         self._debug_color = (
@@ -133,6 +135,7 @@ class RoboSprite(DirtySprite):
             self._show_tank_id()
             self._show_detection()
 
+
 class UserInterfaceState:
     """
         Класс для передачи состояния UI
@@ -157,11 +160,12 @@ class UserInterfaceState:
         self.the_end != other.the_end or\
         self.selected_ids != other.selected_ids
 
+
 class UserInterface:
     """
         Show sprites and get feedback from user
     """
-    _max_fps = 50 # ограничиваем для стабильности отклика клавы/мыши
+    _max_fps = 50  # ограничиваем для стабильности отклика клавы/мыши
 
     def __init__(self, name):
         """
@@ -289,10 +293,10 @@ class UserInterface:
             if common._debug:
                 # были в режиме отладки
                 self.clear_screen()
-            common._debug = not common._debug # переключаем и тут тоже - потому что отдельный процесс
+            # переключаем и тут тоже - потому что отдельный процесс
+            common._debug = not common._debug
 
         return self.ui_state != prev_ui_state
-
 
     def _select_objects(self):
         """
@@ -304,7 +308,8 @@ class UserInterface:
         if self.ui_state._mouse_buttons[0] and not self.mouse_buttons[0]:
             # mouse down
             for obj_id, obj in self.game_objects.iteritems():
-                if obj.state._selectable and obj.rect.collidepoint(self.ui_state._mouse_pos):
+                if obj.state._selectable and \
+                   obj.rect.collidepoint(self.ui_state._mouse_pos):
                     # координаты экранные
                     obj._selected = not obj._selected
                 elif not common._debug:
@@ -323,14 +328,17 @@ class UserInterface:
 
     def _draw_radar_outline(self, obj):
         from math import pi, cos, sin
-        angle_r = (obj.state.course - constants.tank_radar_angle // 2) / 180.0 * pi
-        angle_l = (obj.state.course + constants.tank_radar_angle // 2) / 180.0 * pi
+
+        angle = constants.tank_radar_angle
+        angle_r = (obj.state.course - angle // 2) / 180.0 * pi
+        angle_l = (obj.state.course + angle // 2) / 180.0 * pi
         coord = obj.state.coord
+        radar_range = constants.tank_radar_range
         points = [
-            Point(coord.x + cos(angle_r) * constants.tank_radar_range,
-                  coord.y + sin(angle_r) * constants.tank_radar_range),
-            Point(coord.x + cos(angle_l) * constants.tank_radar_range,
-                  coord.y + sin(angle_l) * constants.tank_radar_range),
+            Point(coord.x + cos(angle_r) * radar_range,
+                  coord.y + sin(angle_r) * radar_range),
+            Point(coord.x + cos(angle_l) * radar_range,
+                  coord.y + sin(angle_l) * radar_range),
             Point(coord.x,
                   coord.y)
         ]

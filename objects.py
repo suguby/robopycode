@@ -42,7 +42,8 @@ class GameObject():
         # container - это список обьектов игры по типам,
         # инициализируется в Scene
         if self.container is None:
-            raise Exception("You must create robopycode.engine.Scene instance at first!")
+            raise Exception("You must create robopycode.engine.Scene"
+                            " instance at first!")
         self.container.append(self)
 
         GameObject._objects_count += 1
@@ -259,6 +260,7 @@ class GameObject():
         """
         pass
 
+
 class Gun:
     states = ['reloading', 'loaded']
 
@@ -294,6 +296,7 @@ class Gun:
             self.heat = constants.tank_gun_heat_after_fire
             self._state = 'reloading'
             return shot
+
 
 class Tank(GameObject):
     """
@@ -463,7 +466,7 @@ class StaticTarget(Tank):
         Statichnaja mishen'
     """
     _img_file_name = 'tank_red.png'
-    _selectable = False # обьект нельзя выделить мышкой
+    _selectable = False  # обьект нельзя выделить мышкой
 
     def __init__(self, pos=None, angle=None, auto_fire=False):
         Tank.__init__(self, pos=pos, angle=angle)
@@ -481,7 +484,7 @@ class Target(Tank):
         Mishen'
     """
     _img_file_name = 'tank_red.png'
-    _selectable = False # обьект нельзя выделить мышкой
+    _selectable = False  # обьект нельзя выделить мышкой
 
     def __init__(self, pos=None, angle=None, auto_fire=False):
         Tank.__init__(self, pos=pos, angle=angle)
@@ -513,7 +516,7 @@ class Shot(GameObject):
     _img_file_name = 'shot.png'
     _layer = 3
     radius = 4  # collision detect
-    _selectable = False # обьект нельзя выделить мышкой
+    _selectable = False  # обьект нельзя выделить мышкой
 
     def __init__(self, pos, direction):
         """
@@ -546,20 +549,22 @@ class Shot(GameObject):
             self.container.remove(self)
         GameObject._game_step(self)
 
-# TODO подумать куда отнести взрывы, ведь в игоровой механике они не участвуют
+
 class Explosion(GameObject):
     """
         The explosion of the tank.
 
         Vzryv tanka.
     """
+    # TODO подумать куда отнести взрывы,
+    # TODO ведь в игоровой механике они не участвуют
     _img_file_name = 'explosion.png'
     _layer = user_interface._max_layers
     radius = 0  # collision detect
     defaultlife = 12
     animcycle = 3
-    _selectable = False # обьект нельзя выделить мышкой
-    _animated = True # надо анимировать обьект TODO сделать анимацию в гифке
+    _selectable = False  # обьект нельзя выделить мышкой
+    _animated = True  # надо анимировать обьект TODO сделать анимацию в гифке
 
     def __init__(self, explosion_coord, hitted_obj):
         GameObject.__init__(self, explosion_coord, revolvable=False)

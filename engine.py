@@ -42,6 +42,7 @@ class ObjectState:
         else:
             self._detected_by = []
 
+
 class Scene:
     """
         Game scene. Container for all game objects.
@@ -63,7 +64,6 @@ class Scene:
         self.parent_conn, child_conn = Pipe()
         self.ui = Process(target=ui.run, args=(child_conn,))
         self.ui.start()
-
 
     def _game_step(self):
         """
@@ -127,7 +127,6 @@ class Scene:
         if common._debug:
             common.log.debug('=' * 20, self._step, '=' * 10)
 
-
     def go(self):
         """
             Main game cycle - the game begin!
@@ -169,7 +168,7 @@ class Scene:
 
             # вычисляем остаток времени на сон
             cycle_time = time.time() - cycle_begin
-            cycle_time_rest  = constants.game_step_min_time - cycle_time
+            cycle_time_rest = constants.game_step_min_time - cycle_time
             if cycle_time_rest > 0:
                 # о! есть время поспать... :)
 #                print "sleep for %.6f" % cycle_time_rest
