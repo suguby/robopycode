@@ -13,8 +13,6 @@ from random import randint
 class GameObject():
     """
         Main game object
-
-        Glavnyj igrovoj ob'ekt
     """
     radius = 1
     _objects_count = 0
@@ -63,8 +61,6 @@ class GameObject():
     def debug(self, pattern, *args):
         """
             Show debug information if DEBUG mode
-
-            Pokazyvat' otladochnuyu informatsiyu esli vklyuchen rezhim otladki
         """
         if isinstance(self, Tank):
             if self._selected:
@@ -79,8 +75,6 @@ class GameObject():
     def turn_to(self, arg1):
         """
             Turn to the subject / in that direction
-
-            Povernut'sja k ob'ektu / v ukazanom napravlenii
         """
         if isinstance(arg1, GameObject) or arg1.__class__ == geometry.Point:
             self.vector = geometry.Vector(self, arg1, 0)
@@ -95,8 +89,6 @@ class GameObject():
     def move(self, direction, speed=3):
         """
             Ask movement in the direction of <angle>, <speed>
-
-            Zadat' dvizhenie v napravlenii <ugol v gradusah>, <skorost'>
         """
         if speed > constants.tank_speed:
             speed = constants.tank_speed
@@ -112,9 +104,6 @@ class GameObject():
         """
             Ask movement to the specified point
             <object/point/coordinats>, <speed>
-
-            Zadat' dvizhenie k ukazannoj tochke
-            <ob'ekt/tochka/koordinaty>, <skorost'>
         """
         if type(target) in (type(()), type([])):
             target = geometry.Point(target)
@@ -138,8 +127,6 @@ class GameObject():
     def stop(self):
         """
             Unconditional stop
-
-            Ostanovit' ob'ekt
         """
         self._state = 'stopped'
         self._need_moving = False
@@ -147,10 +134,7 @@ class GameObject():
 
     def _game_step(self):
         """
-            Internal function
-
-            Vnutrennjaja funkcija dlja dvizhenija/povorota
-            i proverki vyhoda za granicy jekrana
+            Proceed one game step - do turns, movements and boundary check
         """
         self.debug('obj step %s', self)
         if self._revolvable and self._state == 'turning':
@@ -195,6 +179,7 @@ class GameObject():
 
         self._heartbeat_tics -= 1
         if not self._heartbeat_tics:
+            # TODO hearbeat надо в очередь ставить
             self.hearbeat()
             self._heartbeat_tics = 5
 
@@ -213,8 +198,6 @@ class GameObject():
     def distance_to(self, obj):
         """
             Calculate distance to <object/point>
-
-            Rasstojanie do ob'ekta <ob#ekt/tochka>
         """
         if isinstance(obj, GameObject):  # и для порожденных классов
             return self.coord.distance_to(obj.coord)
@@ -225,9 +208,7 @@ class GameObject():
 
     def near(self, obj, radius=20):
         """
-            Is we near to the <object/point>?
-
-            Proverka blizosti k ob'ektu <ob'ekt/tochka>
+            Is it near to the <object/point>?
         """
         return self.distance_to(obj) <= radius
 
@@ -239,24 +220,18 @@ class GameObject():
     def stopped(self):
         """
             Event: stopped
-
-            Sobytie: ostanovka
         """
         pass
 
     def stopped_at_target(self):
         """
             Event: stopped at target
-
-            Sobytie: ostanovka u celi
         """
         pass
 
     def hearbeat(self):
         """
             Event: Heartbeat
-
-            sobytie: pul'sacija zhizni
         """
         pass
 
@@ -272,8 +247,6 @@ class Gun:
     def _game_step(self):
         """
             Internal function
-
-            Vnutrennjaja funkcija dlja obnovlenija peremennyh sostojanija
         """
         if self._state == 'reloading':
             self.heat -= 1
@@ -285,8 +258,6 @@ class Gun:
     def fire(self):
         """
             Fire from gun
-
-            vystrelit' iz pushki
         """
         if self._state == 'loaded':
             start_point = geometry.Point(self.owner.coord) + \
@@ -301,8 +272,6 @@ class Gun:
 class Tank(GameObject):
     """
         Tank. May ride on the screen.
-
-        Tank. Mozhet ezdit' po jekranu.
     """
     _selectable = True  # обьект можно выделить мышкой
 
@@ -313,8 +282,6 @@ class Tank(GameObject):
     def __init__(self, pos=None, angle=None):
         """
             create a tank in a specified point on the screen
-
-            sozdat' tank v ukazannoj tochke jekrana
         """
         if not pos:
             pos = common.random_point(self.radius)
@@ -335,8 +302,6 @@ class Tank(GameObject):
     def _game_step(self):
         """
             Internal function to update the state variables
-
-            Vnutrennjaja funkcija dlja obnovlenija peremennyh sostojanija
         """
         if self._armor < constants.tank_max_armor:
             self._armor += constants.tank_armor_renewal_rate
@@ -346,7 +311,7 @@ class Tank(GameObject):
 
     def _update_explosion(self):
         """
-            Обновить взрыв на броне - должен двигаться с нами :)
+            Renew exploison at the armor - it must moving with as
         """
         if self.explosion:
             self.explosion.coord = geometry.Point(self.coord)
@@ -362,8 +327,6 @@ class Tank(GameObject):
     def fire(self):
         """
             Make shot.
-
-            vystrelit' iz pushki
         """
         self.shot = self.gun.fire()
         if self.shot:
@@ -372,8 +335,6 @@ class Tank(GameObject):
     def detonate(self):
         """
             Suicide
-
-            Samopodryv...
         """
         self.stop()
         Explosion(self.coord, self)  # взрыв на нашем месте
@@ -384,8 +345,6 @@ class Tank(GameObject):
     def hit(self, shot):
         """
             Contact with our tank shell
-
-            Popadanie v nash tank snarjada
         """
         self._armor -= shot.power
         self._events.put(events.EventHit())
@@ -397,64 +356,48 @@ class Tank(GameObject):
     def born(self):
         """
             Event: born
-
-            Sobytie: rozhdenie
         """
         pass
 
     def stopped(self):
         """
             Event: stopped
-
-            Sobytie: ostanovka
         """
         pass
 
     def stopped_at_target_point(self, point):
         """
             Event: stopped near the target
-
-            Sobytie: ostanovka u celi
         """
         pass
 
     def gun_reloaded(self):
         """
             Event: the gun is ready to fire
-
-            Sobytie: pushka gotova k vystrelu
         """
         pass
 
     def hitted(self):
         """
             Event: contact with our tank shell
-
-            Sobytie: chuzhoj snarjad popal v bronju
         """
         pass
 
     def collided_with(self, obj):
         """
             Event: contact with our tank shell
-
-            Sobytie: stolknovenie s ob'ektom
         """
         pass
 
     def target_destroyed(self):
         """
             Event: contact with our tank shell
-
-            Sobytie: nash snarjad popal v ob'ekt i ob'ekt unichtozhen
         """
         pass
 
     def in_tank_radar_range(self, objects):
         """
             Event: contact with our tank shell
-
-            Sobytie: radar obnaruzhil ob'ekty
         """
         pass
 
@@ -462,8 +405,6 @@ class Tank(GameObject):
 class StaticTarget(Tank):
     """
         A static target
-
-        Statichnaja mishen'
     """
     _img_file_name = 'tank_red.png'
     _selectable = False  # обьект нельзя выделить мышкой
@@ -480,8 +421,6 @@ class StaticTarget(Tank):
 class Target(Tank):
     """
         A target
-
-        Mishen'
     """
     _img_file_name = 'tank_red.png'
     _selectable = False  # обьект нельзя выделить мышкой
@@ -510,8 +449,6 @@ class Target(Tank):
 class Shot(GameObject):
     """
         The shell. Flies in a straight until it hits the target.
-
-        Snarjad. Letit po prjamoj poka ne vstretit cel'.
     """
     _img_file_name = 'shot.png'
     _layer = 3
@@ -532,8 +469,6 @@ class Shot(GameObject):
     def detonate_at(self, obj):
         """
             Explosion!
-
-            vzryv!
         """
         SmallExplosion(self.coord, obj)  # взрыв на месте снаряда
         self.container.remove(self)
@@ -553,8 +488,6 @@ class Shot(GameObject):
 class Explosion(GameObject):
     """
         The explosion of the tank.
-
-        Vzryv tanka.
     """
     # TODO подумать куда отнести взрывы,
     # TODO ведь в игоровой механике они не участвуют
@@ -588,7 +521,5 @@ class Explosion(GameObject):
 class SmallExplosion(Explosion):
     """
         The explosion of the shell.
-
-        Vzryv snarjada.
     """
     _img_file_name = 'small_explosion.png'

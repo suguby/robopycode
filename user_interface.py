@@ -9,7 +9,6 @@ from pygame.transform import flip
 from pygame.draw import line, circle, rect, aalines
 from pygame.display import set_caption, set_mode
 from pygame.time import Clock
-import time
 import common
 import constants
 import os
@@ -138,8 +137,7 @@ class RoboSprite(DirtySprite):
 
 class UserInterfaceState:
     """
-        Класс для передачи состояния UI
-        (обработанные нажатия клавиш и выбор обьектов мышкой)
+        UI state class - key pressing and mouse select
     """
     def __init__(self):
         self.one_step = False
@@ -229,7 +227,7 @@ class UserInterface:
 
     def update_state(self, objects_state):
         """
-            обновить состояния обьектов игры, создать/удалить спрайты если надо
+            renew game objects states, create/delete sprites if need
         """
         new_ids = set(objects_state)
         old_ids = set(self.game_objects)
@@ -264,8 +262,7 @@ class UserInterface:
 
     def ui_state_changed(self):
         """
-            проверить изменилось ли и получить состояние UI
-            - нажатые клавиши и выбранные обьекты
+            check UI state - if changed it will return UI state
         """
         prev_ui_state = self.ui_state
         self.ui_state = UserInterfaceState()
@@ -300,7 +297,7 @@ class UserInterface:
 
     def _select_objects(self):
         """
-            выделение обьектов мышкой
+            selecting objects with mouse
         """
         self.ui_state._mouse_pos = pygame.mouse.get_pos()
         self.ui_state._mouse_buttons = pygame.mouse.get_pressed()

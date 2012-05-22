@@ -14,7 +14,7 @@ from multiprocessing import Process, Pipe
 
 class ObjectState:
     """
-        класс для хранения и передачи состояния объекта между потоками
+        Hold game object state, useful for exchange beetwin processes
     """
     params = (
         'id',
