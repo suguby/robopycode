@@ -22,11 +22,10 @@ class ObjectState:
         'course',
         'armor',
         'gun_heat',
-        'revolvable',
+        '_revolvable',
         '_img_file_name',
         '_layer',
         '_selectable',
-        'classname',
         '_animated'
         )
 

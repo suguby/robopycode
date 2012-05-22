@@ -22,10 +22,6 @@ class GameObject():
     container = None
     _animated = True
 
-    @property
-    def classname(self):
-        return self.__class__.__name__
-
     def __init__(self, pos, revolvable=True, angle=None):
         self.coord = geometry.Point(pos)
         self.target_coord = geometry.Point(0, 0)
@@ -35,7 +31,7 @@ class GameObject():
         self.vector = geometry.Vector(angle, 0)
         self.course = self.vector.angle
         self.shot = False
-        self.revolvable = revolvable
+        self._revolvable = revolvable
         self.load_value = 0
         self._distance_cache = {}
         self._events = Queue.Queue()
@@ -73,11 +69,11 @@ class GameObject():
             if self._selected:
                 common.log.debug('%s:%s' % (self.id, pattern), *args)
         else:
-            common.log.debug('%s:%s:%s' % (self.classname,
+            common.log.debug('%s:%s:%s' % (self.__class__.__name__,
                                            self.id, pattern), *args)
 
     def _need_turning(self):
-        return self.revolvable and int(self.course) != int(self.vector.angle)
+        return self._revolvable and int(self.course) != int(self.vector.angle)
 
     def turn_to(self, arg1):
         """
@@ -156,7 +152,7 @@ class GameObject():
             i proverki vyhoda za granicy jekrana
         """
         self.debug('obj step %s', self)
-        if self.revolvable and self._state == 'turning':
+        if self._revolvable and self._state == 'turning':
             delta = self.vector.angle - self.course
             if abs(delta) < constants.tank_turn_speed:
                 self.course = self.vector.angle
@@ -305,7 +301,7 @@ class Tank(GameObject):
 
         Tank. Mozhet ezdit' po jekranu.
     """
-    _selectable = True# обьект можно выделить мышкой
+    _selectable = True  # обьект можно выделить мышкой
 
     _img_file_name = 'tank_blue.png'
     _layer = 2

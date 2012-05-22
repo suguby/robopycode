@@ -116,7 +116,7 @@ class RoboSprite(DirtySprite):
             Do not call in your code!
         """
         self.rect.center = self.state.coord.to_screen()
-        if self.state.revolvable:
+        if self.state._revolvable:
             self.image = _rotate_about_center(self.images[0],
                                               self.state._img_file_name,
                                               self.state.course)
@@ -142,9 +142,10 @@ class UserInterfaceState:
         self.one_step = False
         self.switch_debug = False
         self.the_end = False
-        self.mouse_pos = None
-        self.mouse_buttons = None
         self.selected_ids = []
+        # внутренние для хранения состояния мыши
+        self._mouse_pos = None
+        self._mouse_buttons = None
 
     def __eq__(self, other):
         return not self.__ne__(other)
@@ -297,20 +298,20 @@ class UserInterface:
         """
             выделение обьектов мышкой
         """
-        self.ui_state.mouse_pos = pygame.mouse.get_pos()
-        self.ui_state.mouse_buttons = pygame.mouse.get_pressed()
+        self.ui_state._mouse_pos = pygame.mouse.get_pos()
+        self.ui_state._mouse_buttons = pygame.mouse.get_pressed()
 
-        if self.ui_state.mouse_buttons[0] and not self.mouse_buttons[0]:
+        if self.ui_state._mouse_buttons[0] and not self.mouse_buttons[0]:
             # mouse down
             for obj_id, obj in self.game_objects.iteritems():
-                if obj.state._selectable and obj.rect.collidepoint(self.ui_state.mouse_pos):
+                if obj.state._selectable and obj.rect.collidepoint(self.ui_state._mouse_pos):
                     # координаты экранные
                     obj._selected = not obj._selected
                 elif not common._debug:
                     # возможно выделение множества танков
                     # только на режиме отладки
                     obj._selected = False
-        self.mouse_buttons = self.ui_state.mouse_buttons
+        self.mouse_buttons = self.ui_state._mouse_buttons
         self.ui_state.selected_ids = [
             _id for _id in self.game_objects
             if self.game_objects[_id]._selected
