@@ -13,14 +13,12 @@ from random import randint
 class GameObject():
     """
         Main game object
-
-        Glavnyj igrovoj ob'ekt
     """
     radius = 1
-    __name__ = 'GameObject'
     _objects_count = 0
     states = ['stopped', 'turning', 'moving']
     container = None
+    _animated = True
 
     def __init__(self, pos, revolvable=True, angle=None):
         self.coord = geometry.Point(pos)
@@ -31,7 +29,7 @@ class GameObject():
         self.vector = geometry.Vector(angle, 0)
         self.course = self.vector.angle
         self.shot = False
-        self.revolvable = revolvable
+        self._revolvable = revolvable
         self.load_value = 0
         self._distance_cache = {}
         self._events = Queue.Queue()
@@ -39,19 +37,22 @@ class GameObject():
         self._state = 'stopped'
         self._need_moving = False
 
-        # container - это список, обьявлен на уровне порожденного класса,
+        # container - это список обьектов игры по типам,
         # инициализируется в Scene
+        if self.container is None:
+            raise Exception("You must create robopycode.engine.Scene"
+                            " instance at first!")
         self.container.append(self)
 
         GameObject._objects_count += 1
-        self._id = GameObject._objects_count
+        self.id = GameObject._objects_count
         self.debug('born %s', self)
 
         self._heartbeat_tics = 5
 
     def __str__(self):
         return 'obj(%s, %s %s cour=%.1f %s)' \
-                % (self._id, self.coord, self.vector,
+                % (self.id, self.coord, self.vector,
                    self.course, self._state)
 
     def __repr__(self):
@@ -60,27 +61,20 @@ class GameObject():
     def debug(self, pattern, *args):
         """
             Show debug information if DEBUG mode
-
-            Pokazyvat' otladochnuyu informatsiyu esli vklyuchen rezhim otladki
         """
         if isinstance(self, Tank):
             if self._selected:
-                common.log.debug('%s:%s' % (self._id, pattern), *args)
+                common.log.debug('%s:%s' % (self.id, pattern), *args)
         else:
             common.log.debug('%s:%s:%s' % (self.__class__.__name__,
-                                           self._id, pattern), *args)
-
-    def type(self):
-        return self.__name__
+                                           self.id, pattern), *args)
 
     def _need_turning(self):
-        return self.revolvable and int(self.course) != int(self.vector.angle)
+        return self._revolvable and int(self.course) != int(self.vector.angle)
 
     def turn_to(self, arg1):
         """
             Turn to the subject / in that direction
-
-            Povernut'sja k ob'ektu / v ukazanom napravlenii
         """
         if isinstance(arg1, GameObject) or arg1.__class__ == geometry.Point:
             self.vector = geometry.Vector(self, arg1, 0)
@@ -95,8 +89,6 @@ class GameObject():
     def move(self, direction, speed=3):
         """
             Ask movement in the direction of <angle>, <speed>
-
-            Zadat' dvizhenie v napravlenii <ugol v gradusah>, <skorost'>
         """
         if speed > constants.tank_speed:
             speed = constants.tank_speed
@@ -112,9 +104,6 @@ class GameObject():
         """
             Ask movement to the specified point
             <object/point/coordinats>, <speed>
-
-            Zadat' dvizhenie k ukazannoj tochke
-            <ob'ekt/tochka/koordinaty>, <skorost'>
         """
         if type(target) in (type(()), type([])):
             target = geometry.Point(target)
@@ -138,8 +127,6 @@ class GameObject():
     def stop(self):
         """
             Unconditional stop
-
-            Ostanovit' ob'ekt
         """
         self._state = 'stopped'
         self._need_moving = False
@@ -147,13 +134,10 @@ class GameObject():
 
     def _game_step(self):
         """
-            Internal function
-
-            Vnutrennjaja funkcija dlja dvizhenija/povorota
-            i proverki vyhoda za granicy jekrana
+            Proceed one game step - do turns, movements and boundary check
         """
         self.debug('obj step %s', self)
-        if self.revolvable and self._state == 'turning':
+        if self._revolvable and self._state == 'turning':
             delta = self.vector.angle - self.course
             if abs(delta) < constants.tank_turn_speed:
                 self.course = self.vector.angle
@@ -195,6 +179,7 @@ class GameObject():
 
         self._heartbeat_tics -= 1
         if not self._heartbeat_tics:
+            # TODO hearbeat надо в очередь ставить
             self.hearbeat()
             self._heartbeat_tics = 5
 
@@ -213,8 +198,6 @@ class GameObject():
     def distance_to(self, obj):
         """
             Calculate distance to <object/point>
-
-            Rasstojanie do ob'ekta <ob#ekt/tochka>
         """
         if isinstance(obj, GameObject):  # и для порожденных классов
             return self.coord.distance_to(obj.coord)
@@ -225,9 +208,7 @@ class GameObject():
 
     def near(self, obj, radius=20):
         """
-            Is we near to the <object/point>?
-
-            Proverka blizosti k ob'ektu <ob'ekt/tochka>
+            Is it near to the <object/point>?
         """
         return self.distance_to(obj) <= radius
 
@@ -239,30 +220,23 @@ class GameObject():
     def stopped(self):
         """
             Event: stopped
-
-            Sobytie: ostanovka
         """
         pass
 
     def stopped_at_target(self):
         """
             Event: stopped at target
-
-            Sobytie: ostanovka u celi
         """
         pass
 
     def hearbeat(self):
         """
             Event: Heartbeat
-
-            sobytie: pul'sacija zhizni
         """
         pass
 
 
 class Gun:
-    __name__ = 'Gun'
     states = ['reloading', 'loaded']
 
     def __init__(self, owner):
@@ -273,8 +247,6 @@ class Gun:
     def _game_step(self):
         """
             Internal function
-
-            Vnutrennjaja funkcija dlja obnovlenija peremennyh sostojanija
         """
         if self._state == 'reloading':
             self.heat -= 1
@@ -286,8 +258,6 @@ class Gun:
     def fire(self):
         """
             Fire from gun
-
-            vystrelit' iz pushki
         """
         if self._state == 'loaded':
             start_point = geometry.Point(self.owner.coord) + \
@@ -299,13 +269,12 @@ class Gun:
             return shot
 
 
-class Tank(GameObject, user_interface.MshpSprite):
+class Tank(GameObject):
     """
         Tank. May ride on the screen.
-
-        Tank. Mozhet ezdit' po jekranu.
     """
-    __name__ = 'Tank'
+    _selectable = True  # обьект можно выделить мышкой
+
     _img_file_name = 'tank_blue.png'
     _layer = 2
     radius = 32  # collision detect
@@ -313,13 +282,10 @@ class Tank(GameObject, user_interface.MshpSprite):
     def __init__(self, pos=None, angle=None):
         """
             create a tank in a specified point on the screen
-
-            sozdat' tank v ukazannoj tochke jekrana
         """
         if not pos:
             pos = common.random_point(self.radius)
         GameObject.__init__(self, pos, angle=angle)
-        user_interface.MshpSprite.__init__(self)
         self.gun = Gun(self)
         self._armor = float(constants.tank_max_armor)
         self.explosion = None
@@ -329,11 +295,13 @@ class Tank(GameObject, user_interface.MshpSprite):
     def armor(self):
         return int(self._armor)
 
+    @property
+    def gun_heat(self):
+        return self.gun.heat
+
     def _game_step(self):
         """
             Internal function to update the state variables
-
-            Vnutrennjaja funkcija dlja obnovlenija peremennyh sostojanija
         """
         if self._armor < constants.tank_max_armor:
             self._armor += constants.tank_armor_renewal_rate
@@ -343,7 +311,7 @@ class Tank(GameObject, user_interface.MshpSprite):
 
     def _update_explosion(self):
         """
-            Обновить взрыв на броне - должен двигаться с нами :)
+            Renew exploison at the armor - it must moving with as
         """
         if self.explosion:
             self.explosion.coord = geometry.Point(self.coord)
@@ -359,8 +327,6 @@ class Tank(GameObject, user_interface.MshpSprite):
     def fire(self):
         """
             Make shot.
-
-            vystrelit' iz pushki
         """
         self.shot = self.gun.fire()
         if self.shot:
@@ -369,20 +335,16 @@ class Tank(GameObject, user_interface.MshpSprite):
     def detonate(self):
         """
             Suicide
-
-            Samopodryv...
         """
         self.stop()
         Explosion(self.coord, self)  # взрыв на нашем месте
-        self.kill()
+#        self.kill() - TODO вынести в спрайт
         if self in self.container:
             self.container.remove(self)
 
     def hit(self, shot):
         """
             Contact with our tank shell
-
-            Popadanie v nash tank snarjada
         """
         self._armor -= shot.power
         self._events.put(events.EventHit())
@@ -394,64 +356,48 @@ class Tank(GameObject, user_interface.MshpSprite):
     def born(self):
         """
             Event: born
-
-            Sobytie: rozhdenie
         """
         pass
 
     def stopped(self):
         """
             Event: stopped
-
-            Sobytie: ostanovka
         """
         pass
 
     def stopped_at_target_point(self, point):
         """
             Event: stopped near the target
-
-            Sobytie: ostanovka u celi
         """
         pass
 
     def gun_reloaded(self):
         """
             Event: the gun is ready to fire
-
-            Sobytie: pushka gotova k vystrelu
         """
         pass
 
     def hitted(self):
         """
             Event: contact with our tank shell
-
-            Sobytie: chuzhoj snarjad popal v bronju
         """
         pass
 
     def collided_with(self, obj):
         """
             Event: contact with our tank shell
-
-            Sobytie: stolknovenie s ob'ektom
         """
         pass
 
     def target_destroyed(self):
         """
             Event: contact with our tank shell
-
-            Sobytie: nash snarjad popal v ob'ekt i ob'ekt unichtozhen
         """
         pass
 
     def in_tank_radar_range(self, objects):
         """
             Event: contact with our tank shell
-
-            Sobytie: radar obnaruzhil ob'ekty
         """
         pass
 
@@ -459,11 +405,9 @@ class Tank(GameObject, user_interface.MshpSprite):
 class StaticTarget(Tank):
     """
         A static target
-
-        Statichnaja mishen'
     """
-    __name__ = 'StaticTarget'
     _img_file_name = 'tank_red.png'
+    _selectable = False  # обьект нельзя выделить мышкой
 
     def __init__(self, pos=None, angle=None, auto_fire=False):
         Tank.__init__(self, pos=pos, angle=angle)
@@ -477,11 +421,9 @@ class StaticTarget(Tank):
 class Target(Tank):
     """
         A target
-
-        Mishen'
     """
-    __name__ = 'Target'
     _img_file_name = 'tank_red.png'
+    _selectable = False  # обьект нельзя выделить мышкой
 
     def __init__(self, pos=None, angle=None, auto_fire=False):
         Tank.__init__(self, pos=pos, angle=angle)
@@ -500,20 +442,18 @@ class Target(Tank):
             self.fire()
 
     def collided_with(self, obj):
-        self.debug("collided_with %s", obj._id)
+        self.debug("collided_with %s", obj.id)
         self.move_at(common.random_point())
 
 
-class Shot(GameObject, user_interface.MshpSprite):
+class Shot(GameObject):
     """
         The shell. Flies in a straight until it hits the target.
-
-        Snarjad. Letit po prjamoj poka ne vstretit cel'.
     """
-    __name__ = 'Shot'
     _img_file_name = 'shot.png'
     _layer = 3
     radius = 4  # collision detect
+    _selectable = False  # обьект нельзя выделить мышкой
 
     def __init__(self, pos, direction):
         """
@@ -522,7 +462,6 @@ class Shot(GameObject, user_interface.MshpSprite):
             Zapustit' snarjad iz ukazannoj tochki v ukazannom napravlenii
         """
         GameObject.__init__(self, pos, revolvable=False)
-        user_interface.MshpSprite.__init__(self)
         self.move(direction, constants.shot_speed)
         self.life = constants.shot_life
         self.power = constants.shot_power
@@ -530,11 +469,9 @@ class Shot(GameObject, user_interface.MshpSprite):
     def detonate_at(self, obj):
         """
             Explosion!
-
-            vzryv!
         """
         SmallExplosion(self.coord, obj)  # взрыв на месте снаряда
-        self.kill()  # as MshpSprite instance
+        self.container.remove(self)
         if self.owner:
             self.owner.shot = None
             self.owner = None
@@ -543,28 +480,27 @@ class Shot(GameObject, user_interface.MshpSprite):
         self.debug('%s', self)
         self.life -= 1
         if not self.life or not self._state == 'moving':
-            self.kill()
             self.owner.shot = None
             self.container.remove(self)
         GameObject._game_step(self)
 
 
-class Explosion(GameObject, user_interface.MshpSprite):
+class Explosion(GameObject):
     """
         The explosion of the tank.
-
-        Vzryv tanka.
     """
-    __name__ = 'Explosion'
+    # TODO подумать куда отнести взрывы,
+    # TODO ведь в игоровой механике они не участвуют
     _img_file_name = 'explosion.png'
     _layer = user_interface._max_layers
     radius = 0  # collision detect
     defaultlife = 12
     animcycle = 3
+    _selectable = False  # обьект нельзя выделить мышкой
+    _animated = True  # надо анимировать обьект TODO сделать анимацию в гифке
 
     def __init__(self, explosion_coord, hitted_obj):
         GameObject.__init__(self, explosion_coord, revolvable=False)
-        user_interface.MshpSprite.__init__(self)
         self.vector = geometry.Vector(hitted_obj.coord, explosion_coord)
         self.vector.angle -= hitted_obj.course  # смещение при отображении
         self.owner = hitted_obj
@@ -574,9 +510,8 @@ class Explosion(GameObject, user_interface.MshpSprite):
 
     def _game_step(self):
         self.life -= 1
-        self.image = self.images[self.life // self.animcycle % 2]
+#        self.image = self.images[self.life // self.animcycle % 2]
         if self.life <= 0:
-            self.kill()
             self.container.remove(self)
             self.owner.explosion = None
             self.owner = None
@@ -586,8 +521,5 @@ class Explosion(GameObject, user_interface.MshpSprite):
 class SmallExplosion(Explosion):
     """
         The explosion of the shell.
-
-        Vzryv snarjada.
     """
-    __name__ = 'SmallExplosion'
     _img_file_name = 'small_explosion.png'

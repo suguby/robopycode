@@ -1,13 +1,46 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import user_interface
+import time
+from user_interface import UserInterface
 import geometry
 import objects
 import common
 import math
 import constants
 import events
+from multiprocessing import Process, Pipe
+
+
+class ObjectState:
+    """
+        Hold game object state, useful for exchange beetwin processes
+    """
+    params = (
+        'id',
+        'coord',
+        'course',
+        'armor',
+        'gun_heat',
+        '_revolvable',
+        '_img_file_name',
+        '_layer',
+        '_selectable',
+        '_animated'
+        )
+
+    def __init__(self, obj):
+        for param in self.params:
+            if hasattr(obj, param):
+                val = getattr(obj, param)
+                setattr(self, param, val)
+        if hasattr(obj, '_detected_by'):
+            self._detected_by = [
+                detected_by_obj.id
+                for detected_by_obj in obj._detected_by
+            ]
+        else:
+            self._detected_by = []
 
 
 class Scene:
@@ -24,9 +57,13 @@ class Scene:
         objects.Explosion.container = self.exploisons
         objects.Tank.container = self.grounds
 
-        self.ui = user_interface.UserInterface(name)
         self.hold_state = False  # режим пошаговой отладки
         self._step = 0
+
+        ui = UserInterface(name)
+        self.parent_conn, child_conn = Pipe()
+        self.ui = Process(target=ui.run, args=(child_conn,))
+        self.ui.start()
 
     def _game_step(self):
         """
@@ -40,11 +77,11 @@ class Scene:
             obj._detected_by = []
         searched_left_ids = []
         for left in self.grounds[:]:
-            #~ searched_left_ids.append(left._id)
+            #~ searched_left_ids.append(left.id)
             left.debug(">>> start proceed at scene step")
             left.debug(str(left))
             for right in self.grounds[:]:
-                if (right._id == left._id) or (right._id in searched_left_ids):
+                if (right.id == left.id) or (right.id in searched_left_ids):
                     continue
                 distance = left.distance_to(right)
                 # коллизии
@@ -62,9 +99,9 @@ class Scene:
                 # радары
                 if distance < constants.tank_radar_range:
                     left.debug("distance < constants.tank_radar_range for %s",
-                               right._id)
+                               right.id)
                     if _in_radar_fork(left, right):
-                        left.debug("see %s", right._id)
+                        left.debug("see %s", right.id)
                         if right.armor > 0:
                             left._radar_detected_objs.append(right)
                             right._detected_by.append(left)
@@ -75,7 +112,7 @@ class Scene:
                 if _collide_circle(shot, left):
                     left.hit(shot)
                     shot.detonate_at(left)
-                    self.shots.remove(shot)
+#                    self.shots.remove(shot)
         # после главного цикла - евенты могут меняться
         for obj in self.grounds:
             if obj._radar_detected_objs:
@@ -87,52 +124,58 @@ class Scene:
         for obj in self.shots + self.exploisons:
             obj._game_step()
 
+        if common._debug:
+            common.log.debug('=' * 20, self._step, '=' * 10)
+
     def go(self):
         """
             Main game cycle - the game begin!
         """
         while True:
+            cycle_begin = time.time()
 
-            # получение состояния клавы и мыши
-            self.ui.get_keyboard_and_mouse_state()
-            if self.ui.the_end:
-                break
+            # проверяем, есть ли новое состояние UI на том конце трубы
+            ui_state = None
+            while self.parent_conn.poll(0):
+                # состояний м.б. много, оставляем только последнее
+                ui_state = self.parent_conn.recv()
 
-            # выделение обьектов мышкой
-            if self.ui.mouse_buttons[0] and not self.mouse_buttons[0]:
-                # mouse down
+            # состояние UI изменилось - отрабатываем
+            if ui_state:
+                if ui_state.the_end:
+                    break
+
                 for obj in self.grounds:
-                    if obj.rect.collidepoint(self.ui.mouse_pos):
-                        # координаты экранные
-                        obj._selected = not obj._selected
-                        obj.debug('select %s', obj)
-#                        self.selected = obj
-                    elif not common._debug:
-                        # возможно выделение множества танков
-                        # только на режиме отладки
-                        obj._selected = False
+                    obj._selected = obj.id in ui_state.selected_ids
 
-            self.mouse_buttons = self.ui.mouse_buttons
-
-            # переключение режима отладки
-            if self.ui.switch_debug:
-                if common._debug:  # были в режиме отладки
-                    self.hold_state = False
-                    self.ui.clear_screen()
-                else:
-                    self.hold_state = True
-                common._debug = not common._debug
-                self.ui.debug = common._debug
+                # переключение режима отладки
+                if ui_state.switch_debug:
+                    if common._debug:  # были в режиме отладки
+                        self.hold_state = False
+                    else:
+                        self.hold_state = True
+                    common._debug = not common._debug
 
             # шаг игры, если надо
-            if not self.hold_state or self.ui.one_step:
+            if not self.hold_state or (ui_state and ui_state.one_step):
                 self._step += 1
                 self._game_step()
-                if common._debug:
-                    common.log.debug('=' * 20, self._step, '=' * 10)
+                # отсылаем новое состояние обьектов в UI
+                objects_state = {}
+                for obj in self.grounds + self.shots + self.exploisons:
+                    objects_state[obj.id] = ObjectState(obj)
+                self.parent_conn.send(objects_state)
 
-            # отрисовка
-            self.ui.draw()
+            # вычисляем остаток времени на сон
+            cycle_time = time.time() - cycle_begin
+            cycle_time_rest = constants.game_step_min_time - cycle_time
+            if cycle_time_rest > 0:
+                # о! есть время поспать... :)
+#                print "sleep for %.6f" % cycle_time_rest
+                time.sleep(cycle_time_rest)
+
+        # ждем пока потомки помрут
+        self.ui.join()
 
         print 'Thank for playing robopycode! See you in the future :)'
 
