@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import constants
 from engine import Scene
 from objects import Tank, Target, StaticTarget
-from geometry import Vector
+from geometry import Vector, Point
 from common import random_point
 
 
-class WadTank(Tank):
+class SimpleTank(Tank):
     _img_file_name = 'tank_blue.png'
 
     def turn_around(self):
@@ -41,7 +42,7 @@ class WadTank(Tank):
         else:
             distance_to_target = 100000
         for obj in objects:
-            if not isinstance(obj, WadTank):
+            if not isinstance(obj, self.__class__):
                 distance_to_candidate = self.distance_to(obj)
                 if distance_to_candidate < distance_to_target:
                     target_candidate = obj
@@ -92,13 +93,118 @@ class WadTank(Tank):
     def hearbeat(self):
         self.debug("hearbeat")
 
+
+class CooperativeTank(Tank):
+    """Танк. Может ездить по экрану."""
+    _img_file_name = 'tank_green.png'
+    all_tanks = []
+    target = None
+    _min_armor = 50
+    _min_distance_to_target = 150
+    state = 'at_home'
+    retreat_point = Point(100, constants.field_height - 100)
+
+    def born(self):
+        """ событие: рождение """
+        self.__class__.all_tanks.append(self)
+        self.determine_state()
+
+    def stopped(self):
+        """событие: остановка"""
+        self.determine_state()
+
+    def stopped_at_target_point(self, point):
+        """событие: остановка у цели"""
+        self.determine_state()
+
+    def gun_reloaded(self):
+        self.determine_state()
+
+    def hearbeat(self):
+        self.determine_state()
+
+    def in_tank_radar_range(self, objects):
+        self.target = None
+        for obj in objects:
+            if not self.is_friend(obj):
+                self.target = obj
+                break
+        self.determine_state()
+
+    def is_friend(self, obj):
+        return isinstance(obj, self.__class__)
+
+    def need_retreat(self):
+        return (
+            hasattr(self, 'retreat_point')
+            and self.armor < self._min_armor
+            )
+
+    def follow_target(self, with_move = True):
+        if self.near_target():
+            self.debug("near_target - turned to %s" % self.target)
+            self.turn_to(self.target)
+            self.fire()
+            self.state = 'hunt'
+        elif with_move:
+            if self.target:
+                self.debug("target far away - move to")
+                self.move_at(self.target)
+                self.state = 'folow_target'
+            else:
+                self.debug("no target - random")
+                self.state = 'search'
+                self.move_at(random_point())
+        else:
+            self.debug("target far away and no move - dancing")
+            self.turn_to(self.course + 90)
+            self.state = 'search'
+
+    def at_home(self):
+        return self.distance_to(self.retreat_point) < 50 and self.armor < 90
+
+    def near_target(self):
+        return (self.target
+                and self.target.armor > 0
+                and self.distance_to(self.target) < self._min_distance_to_target
+            )
+
+    def determine_state(self):
+        if self.at_home():
+            self.debug("at_home")
+            self.follow_target(with_move=False)
+        elif self.need_retreat():
+            self.debug("need_retreat")
+            self.target = None
+            self.move_at(self.retreat_point)
+        elif self.target:
+            self.debug("i alive and have target")
+            self.follow_target()
+        else:
+            self.debug("check friends targets")
+            self.target = None
+            for tank in self.__class__.all_tanks:
+                if tank is self:
+                    continue
+                if tank.target and tank.target.armor > 0:
+                    self.target = tank.target
+                    break
+            self.follow_target()
+
+
 scene = Scene('Tanks world')
-tanks = [WadTank() for i in range(5)]
-targets = [Target() for i in range(7)]
-targets = [Target(auto_fire=True) for i in range(3)]
-static_targets = [
-    StaticTarget(pos=(20, 20), angle=90),
-    StaticTarget(pos=(620, 460), angle=-90, auto_fire=True),
+
+army_1 = [SimpleTank() for i in range(5)]
+
+army_2 = [CooperativeTank() for i in range(5)]
+
+targets = [Target() for i in range(4)]
+targets += [Target(auto_fire=True) for i in range(4)]
+
+second_pos = (constants.field_width - 20, constants.field_height - 20)
+targets += [
+    StaticTarget(pos=(20,20), angle=90),
+    StaticTarget(pos=second_pos, angle=-90, auto_fire=True)
 ]
 
 scene.go()

@@ -4,8 +4,8 @@
 import os
 
 # Scene constants
-field_width = 640
-field_height = 480
+field_width = 800
+field_height = 600
 
 # Tank constants
 tank_speed = 5
