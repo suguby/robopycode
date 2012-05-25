@@ -105,16 +105,13 @@ class CooperativeTank(Tank):
     retreat_point = Point(100, constants.field_height - 100)
 
     def born(self):
-        """ событие: рождение """
         self.__class__.all_tanks.append(self)
         self.determine_state()
 
     def stopped(self):
-        """событие: остановка"""
         self.determine_state()
 
     def stopped_at_target_point(self, point):
-        """событие: остановка у цели"""
         self.determine_state()
 
     def gun_reloaded(self):
