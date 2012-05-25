@@ -210,12 +210,15 @@ class CooperativeTank(Tank):
 
 scene = Scene('Tanks world')
 
-army_1 = [SimpleTank() for i in range(5)]
+deploy1 = Point(constants.field_width - 100, 100)
+army_1 = [SimpleTank(pos=deploy1) for i in range(5)]
 
-army_2 = [CooperativeTank() for i in range(5)]
+deploy2 = Point(100, constants.field_height - 100)
+army_2 = [CooperativeTank(pos=deploy2) for i in range(5)]
 
-targets = [Target() for i in range(4)]
-targets += [Target(auto_fire=True) for i in range(4)]
+deploy3 = Point(100, 100)
+targets = [Target(pos=deploy3) for i in range(4)]
+targets += [Target(pos=deploy3, auto_fire=True) for i in range(4)]
 
 second_pos = (constants.field_width - 20, constants.field_height - 20)
 targets += [
