@@ -120,28 +120,32 @@ class CooperativeTank(Tank):
     def gun_reloaded(self):
         self.determine_state()
 
+    def hitted(self):
+        self.determine_state()
+
     def hearbeat(self):
         self.determine_state()
 
     def in_tank_radar_range(self, objects):
-        self.target = None
-        for obj in objects:
-            if not self.is_friend(obj):
-                self.target = obj
-                break
+        self.determine_target(objects)
         self.determine_state()
 
-    def is_friend(self, obj):
-        return isinstance(obj, self.__class__)
-
-    def need_retreat(self):
-        return (
-            hasattr(self, 'retreat_point')
-            and self.armor < self._min_armor
-            )
+    def determine_target(self, objects):
+        self.target = None
+        friends, enemies = [], []
+        for obj in objects:
+            if self.is_friend(obj):
+                friends.append(obj)
+            else:
+                enemies.append(obj)
+        if enemies:
+            self.target = self._get_nearest_obj(enemies)
+            nearest_friend = self._get_nearest_obj(friends)
+            if nearest_friend and self.distance_to(nearest_friend) < self.distance_to(self.target):
+                self.target = None
 
     def follow_target(self, with_move = True):
-        if self.near_target():
+        if self.is_near_target():
             self.debug("near_target - turned to %s" % self.target)
             self.turn_to(self.target)
             self.fire()
@@ -160,20 +164,26 @@ class CooperativeTank(Tank):
             self.turn_to(self.course + 90)
             self.state = 'search'
 
-    def at_home(self):
+    def is_at_home(self):
         return self.distance_to(self.retreat_point) < 50 and self.armor < 90
 
-    def near_target(self):
+    def is_near_target(self):
         return (self.target
                 and self.target.armor > 0
                 and self.distance_to(self.target) < self._min_distance_to_target
             )
 
+    def is_friend(self, obj):
+        return isinstance(obj, self.__class__)
+
+    def is_need_retreat(self):
+        return self.armor < self._min_armor
+
     def determine_state(self):
-        if self.at_home():
+        if self.is_at_home():
             self.debug("at_home")
             self.follow_target(with_move=False)
-        elif self.need_retreat():
+        elif self.is_need_retreat():
             self.debug("need_retreat")
             self.target = None
             self.move_at(self.retreat_point)
@@ -190,6 +200,15 @@ class CooperativeTank(Tank):
                     self.target = tank.target
                     break
             self.follow_target()
+
+    def _get_nearest_obj(self, objects):
+        if objects:
+            nearest_obj = objects[0]
+            for obj in objects[1:]:
+                if self.distance_to(obj) < self.distance_to(nearest_obj):
+                    nearest_obj = obj
+            return nearest_obj
+        return None
 
 
 scene = Scene('Tanks world')
