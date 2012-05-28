@@ -179,7 +179,8 @@ class GameObject():
 
         self._heartbeat_tics -= 1
         if not self._heartbeat_tics:
-            # TODO hearbeat надо в очередь ставить
+            event = events.EventHearbeat()
+            self._events.put(event)
             self.hearbeat()
             self._heartbeat_tics = 5
 
@@ -338,7 +339,6 @@ class Tank(GameObject):
         """
         self.stop()
         Explosion(self.coord, self)  # взрыв на нашем месте
-#        self.kill() - TODO вынести в спрайт
         if self in self.container:
             self.container.remove(self)
 
