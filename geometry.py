@@ -117,7 +117,7 @@ class Point():
         """
             Comparison of the two points on the equality of integer coordinates
         """
-        if  int(self.x) == int(point2.x) and int(self.y) == int(point2.y):
+        if int(self.x) == int(point2.x) and int(self.y) == int(point2.y):
             return True
         return False
 

@@ -141,7 +141,7 @@ class CooperativeTank(Tank):
             if nearest_friend and self.distance_to(nearest_friend) < self.distance_to(self.target):
                 self.target = None
 
-    def follow_target(self, with_move = True):
+    def follow_target(self, with_move=True):
         if self.is_near_target():
             self.debug("near_target - turned to %s" % self.target)
             self.turn_to(self.target)
@@ -222,7 +222,7 @@ targets += [Target(pos=deploy3, auto_fire=True) for i in range(4)]
 
 second_pos = (constants.field_width - 20, constants.field_height - 20)
 targets += [
-    StaticTarget(pos=(20,20), angle=90),
+    StaticTarget(pos=(20, 20), angle=90),
     StaticTarget(pos=second_pos, angle=-90, auto_fire=True)
 ]
 
