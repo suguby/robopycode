@@ -121,6 +121,7 @@ class CooperativeTank(Tank):
         self.determine_state()
 
     def hearbeat(self):
+        self.debug("hearbeat")
         self.determine_state()
 
     def in_tank_radar_range(self, objects):
