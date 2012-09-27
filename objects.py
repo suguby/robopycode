@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import events
-import common
-import geometry
+from common import log, random_point
+from constants import tank_speed, tank_turn_speed, \
+    field_width, field_height, tank_gun_heat_after_fire, \
+    tank_max_armor, tank_armor_renewal_rate, shot_speed, shot_life, shot_power
+from events import EventHearbeat, EventStoppedAtTargetPoint, EventStopped, \
+    EventGunReloaded, EventBorn, EventTargetDestroyed, EventHit
+from geometry import Point, Vector, normalise_angle
 import user_interface
-import constants
-import Queue
+from Queue import Queue
 from random import randint
 
 
@@ -21,18 +24,18 @@ class GameObject():
     _animated = True
 
     def __init__(self, pos, revolvable=True, angle=None):
-        self.coord = geometry.Point(pos)
-        self.target_coord = geometry.Point(0, 0)
+        self.coord = Point(pos)
+        self.target_coord = Point(0, 0)
 
         if angle is None:
             angle = randint(0, 360)
-        self.vector = geometry.Vector(angle, 0)
+        self.vector = Vector(angle, 0)
         self.course = self.vector.angle
         self.shot = False
         self._revolvable = revolvable
         self.load_value = 0
         self._distance_cache = {}
-        self._events = Queue.Queue()
+        self._events = Queue()
         self._selected = False
         self._state = 'stopped'
         self._need_moving = False
@@ -64,9 +67,9 @@ class GameObject():
         """
         if isinstance(self, Tank):
             if self._selected:
-                common.log.debug('%s:%s' % (self.id, pattern), *args)
+                log.debug('%s:%s' % (self.id, pattern), *args)
         else:
-            common.log.debug('%s:%s:%s' % (self.__class__.__name__,
+            log.debug('%s:%s:%s' % (self.__class__.__name__,
                                            self.id, pattern), *args)
 
     def _need_turning(self):
@@ -76,11 +79,11 @@ class GameObject():
         """
             Turn to the subject / in that direction
         """
-        if isinstance(arg1, GameObject) or arg1.__class__ == geometry.Point:
-            self.vector = geometry.Vector(self, arg1, 0)
+        if isinstance(arg1, GameObject) or arg1.__class__ == Point:
+            self.vector = Vector(self, arg1, 0)
         elif arg1.__class__ == int or arg1.__class__ == float:
             direction = arg1
-            self.vector = geometry.Vector(direction, 0)
+            self.vector = Vector(direction, 0)
         else:
             raise Exception("use GameObject.turn_to(GameObject/Point "
                             "or Angle). Your pass %s" % arg1)
@@ -90,9 +93,9 @@ class GameObject():
         """
             Ask movement in the direction of <angle>, <speed>
         """
-        if speed > constants.tank_speed:
-            speed = constants.tank_speed
-        self.vector = geometry.Vector(direction, speed)
+        if speed > tank_speed:
+            speed = tank_speed
+        self.vector = Vector(direction, speed)
         self.target_coord = self.coord + self.vector * 100  # далеко-далеко...
         self._need_moving = True
         if self._need_turning():
@@ -106,18 +109,18 @@ class GameObject():
             <object/point/coordinats>, <speed>
         """
         if type(target) in (type(()), type([])):
-            target = geometry.Point(target)
-        elif target.__class__ == geometry.Point:
+            target = Point(target)
+        elif target.__class__ == Point:
             pass
         elif isinstance(target, GameObject):
             target = target.coord
         else:
             raise Exception("move_at: target %s must be coord "
                             "or point or GameObject!" % target)
-        if speed > constants.tank_speed:
-            speed = constants.tank_speed
+        if speed > tank_speed:
+            speed = tank_speed
         self.target_coord = target
-        self.vector = geometry.Vector(self.coord, self.target_coord, speed)
+        self.vector = Vector(self.coord, self.target_coord, speed)
         self._need_moving = True
         if self._need_turning():
             self._state = 'turning'
@@ -130,7 +133,7 @@ class GameObject():
         """
         self._state = 'stopped'
         self._need_moving = False
-        self._events.put(events.EventStopped())
+        self._events.put(EventStopped())
 
     def _game_step(self):
         """
@@ -139,25 +142,25 @@ class GameObject():
         self.debug('obj step %s', self)
         if self._revolvable and self._state == 'turning':
             delta = self.vector.angle - self.course
-            if abs(delta) < constants.tank_turn_speed:
+            if abs(delta) < tank_turn_speed:
                 self.course = self.vector.angle
                 if self._need_moving:
                     self._state = 'moving'
                 else:
                     self._state = 'stopped'
-                    self._events.put(events.EventStopped())
+                    self._events.put(EventStopped())
             else:
                 if -180 < delta < 0 or delta > 180:
-                    self.course -= constants.tank_turn_speed
+                    self.course -= tank_turn_speed
                 else:
-                    self.course += constants.tank_turn_speed
-                self.course = geometry.normalise_angle(self.course)
+                    self.course += tank_turn_speed
+                self.course = normalise_angle(self.course)
 
         if self._state == 'moving':
             self.coord.add(self.vector)
             if self.coord.near(self.target_coord):
                 self.stop()
-                self._events.put(events.EventStoppedAtTargetPoint(
+                self._events.put(EventStoppedAtTargetPoint(
                     self.target_coord))
         # boundary_check
         left_ro = self._runout(self.coord.x)
@@ -168,18 +171,18 @@ class GameObject():
         if botm_ro:
             self.coord.y += botm_ro + 1
             self.stop()
-        righ_ro = self._runout(self.coord.x, constants.field_width)
+        righ_ro = self._runout(self.coord.x, field_width)
         if righ_ro:
             self.coord.x -= righ_ro + 1
             self.stop()
-        top_ro = self._runout(self.coord.y, constants.field_height)
+        top_ro = self._runout(self.coord.y, field_height)
         if top_ro:
             self.coord.y -= top_ro + 1
             self.stop()
 
         self._heartbeat_tics -= 1
         if not self._heartbeat_tics:
-            event = events.EventHearbeat()
+            event = EventHearbeat()
             self._events.put(event)
             self.hearbeat()
             self._heartbeat_tics = 5
@@ -202,7 +205,7 @@ class GameObject():
         """
         if isinstance(obj, GameObject):  # и для порожденных классов
             return self.coord.distance_to(obj.coord)
-        if obj.__class__ == geometry.Point:
+        if obj.__class__ == Point:
             return self.coord.distance_to(obj)
         raise Exception("GameObject.distance_to: obj %s "
                         "must be GameObject or Point!" % (obj,))
@@ -253,7 +256,7 @@ class Gun:
             self.heat -= 1
             if not self.heat:
                 # перезарядка только что кончилась
-                self.owner._events.put(events.EventGunReloaded())
+                self.owner._events.put(EventGunReloaded())
                 self._state = 'loaded'
 
     def fire(self):
@@ -261,11 +264,11 @@ class Gun:
             Fire from gun
         """
         if self._state == 'loaded':
-            start_point = geometry.Point(self.owner.coord) + \
-                          geometry.Vector(self.owner.course,
+            start_point = Point(self.owner.coord) + \
+                          Vector(self.owner.course,
                                           self.owner.radius // 2 + 12)
             shot = Shot(pos=start_point, direction=self.owner.course)
-            self.heat = constants.tank_gun_heat_after_fire
+            self.heat = tank_gun_heat_after_fire
             self._state = 'reloading'
             return shot
 
@@ -285,12 +288,12 @@ class Tank(GameObject):
             create a tank in a specified point on the screen
         """
         if not pos:
-            pos = common.random_point(self.radius)
+            pos = random_point(self.radius)
         GameObject.__init__(self, pos, angle=angle)
         self.gun = Gun(self)
-        self._armor = float(constants.tank_max_armor)
+        self._armor = float(tank_max_armor)
         self.explosion = None
-        self._events.put(events.EventBorn())
+        self._events.put(EventBorn())
 
     @property
     def armor(self):
@@ -304,8 +307,8 @@ class Tank(GameObject):
         """
             Internal function to update the state variables
         """
-        if self._armor < constants.tank_max_armor:
-            self._armor += constants.tank_armor_renewal_rate
+        if self._armor < tank_max_armor:
+            self._armor += tank_armor_renewal_rate
         self.gun._game_step()
         self._update_explosion()
         GameObject._game_step(self)
@@ -315,11 +318,11 @@ class Tank(GameObject):
             Renew exploison at the armor - it must moving with as
         """
         if self.explosion:
-            self.explosion.coord = geometry.Point(self.coord)
+            self.explosion.coord = Point(self.coord)
             self.debug("tank course %s explosion.vector.angle %s "
                        "explosion.coord %s", self.course,
                        self.explosion.vector.angle, self.explosion.coord)
-            expl_shift = geometry.Vector(self.course
+            expl_shift = Vector(self.course
                                          + self.explosion.vector.angle,
                                          self.explosion.vector.module)
             self.explosion.coord.add(expl_shift)
@@ -347,10 +350,10 @@ class Tank(GameObject):
             Contact with our tank shell
         """
         self._armor -= shot.power
-        self._events.put(events.EventHit())
+        self._events.put(EventHit())
         if self._armor <= 0:
             if shot.owner:  # еще не был убит
-                shot.owner._events.put(events.EventTargetDestroyed())
+                shot.owner._events.put(EventTargetDestroyed())
             self.detonate()
 
     def born(self):
@@ -430,11 +433,11 @@ class Target(Tank):
         self.auto_fire = auto_fire
 
     def born(self):
-        self.move_at(common.random_point())
+        self.move_at(random_point())
 
     def stopped(self):
         self.debug("stopped")
-        self.move_at(common.random_point())
+        self.move_at(random_point())
 
     def gun_reloaded(self):
         self.debug("gun_reloaded")
@@ -443,7 +446,7 @@ class Target(Tank):
 
     def collided_with(self, obj):
         self.debug("collided_with %s", obj.id)
-        self.move_at(common.random_point())
+        self.move_at(random_point())
 
 
 class Shot(GameObject):
@@ -462,9 +465,9 @@ class Shot(GameObject):
             Zapustit' snarjad iz ukazannoj tochki v ukazannom napravlenii
         """
         GameObject.__init__(self, pos, revolvable=False)
-        self.move(direction, constants.shot_speed)
-        self.life = constants.shot_life
-        self.power = constants.shot_power
+        self.move(direction, shot_speed)
+        self.life = shot_life
+        self.power = shot_power
 
     def detonate_at(self, obj):
         """
@@ -501,7 +504,7 @@ class Explosion(GameObject):
 
     def __init__(self, explosion_coord, hitted_obj):
         GameObject.__init__(self, explosion_coord, revolvable=False)
-        self.vector = geometry.Vector(hitted_obj.coord, explosion_coord)
+        self.vector = Vector(hitted_obj.coord, explosion_coord)
         self.vector.angle -= hitted_obj.course  # смещение при отображении
         self.owner = hitted_obj
         self.owner.explosion = self
