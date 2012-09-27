@@ -7,7 +7,6 @@ from objects import Tank, Target, StaticTarget
 from geometry import Vector, Point
 from common import random_point
 
-
 class SimpleTank(Tank):
     _img_file_name = 'tank_blue.png'
 
@@ -226,4 +225,5 @@ targets += [
     StaticTarget(pos=second_pos, angle=-90, auto_fire=True)
 ]
 
-scene.go()
+if __name__ == '__main__':
+    scene.go()

@@ -42,6 +42,9 @@ class ObjectState:
         else:
             self._detected_by = []
 
+def start_ui(name, child_conn):
+    ui = UserInterface(name)
+    ui.run(child_conn)
 
 class Scene:
     """
@@ -59,11 +62,7 @@ class Scene:
 
         self.hold_state = False  # режим пошаговой отладки
         self._step = 0
-
-        ui = UserInterface(name)
-        self.parent_conn, child_conn = Pipe()
-        self.ui = Process(target=ui.run, args=(child_conn,))
-        self.ui.start()
+        self.name = name
 
     def _game_step(self):
         """
@@ -131,6 +130,10 @@ class Scene:
         """
             Main game cycle - the game begin!
         """
+        self.parent_conn, child_conn = Pipe()
+        self.ui = Process(target=start_ui, args=(self.name, child_conn,))
+        self.ui.start()
+
         while True:
             cycle_begin = time.time()
 
