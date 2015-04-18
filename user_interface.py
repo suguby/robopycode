@@ -152,11 +152,10 @@ class UserInterfaceState:
         return not self.__ne__(other)
 
     def __ne__(self, other):
-        return\
-        self.one_step != other.one_step or\
-        self.switch_debug != other.switch_debug or\
-        self.the_end != other.the_end or\
-        self.selected_ids != other.selected_ids
+        return (self.one_step != other.one_step or
+                self.switch_debug != other.switch_debug or
+                self.the_end != other.the_end or
+                self.selected_ids != other.selected_ids)
 
 
 class UserInterface:
@@ -271,9 +270,9 @@ class UserInterface:
             if event.type == KEYDOWN and event.key == K_f:
                 self.fps_meter.show = not self.fps_meter.show
 
-            if (event.type == QUIT)\
-               or (event.type == KEYDOWN and event.key == K_ESCAPE)\
-            or (event.type == KEYDOWN and event.key == K_q):
+            if ((event.type == QUIT) or
+                    (event.type == KEYDOWN and event.key == K_ESCAPE) or
+                    (event.type == KEYDOWN and event.key == K_q)):
                 self.ui_state.the_end = True
             if event.type == KEYDOWN and event.key == K_d:
                 self.ui_state.switch_debug = True

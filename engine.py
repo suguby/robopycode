@@ -2,19 +2,20 @@
 # -*- coding: utf-8 -*-
 
 import time
+import math
+from multiprocessing import Process, Pipe
+
 from user_interface import UserInterface
 import geometry
 import objects
 import common
-import math
 import constants
 import events
-from multiprocessing import Process, Pipe
 
 
 class ObjectState:
     """
-        Hold game object state, useful for exchange beetwin processes
+        Hold game object state, useful for exchange between processes
     """
     params = (
         'id',
@@ -42,9 +43,11 @@ class ObjectState:
         else:
             self._detected_by = []
 
+
 def start_ui(name, child_conn):
     ui = UserInterface(name)
     ui.run(child_conn)
+
 
 class Scene:
     """
@@ -54,10 +57,10 @@ class Scene:
     def __init__(self, name):
         self.grounds = []
         self.shots = []
-        self.exploisons = []
+        self.explosions = []
 
         objects.Shot.container = self.shots
-        objects.Explosion.container = self.exploisons
+        objects.Explosion.container = self.explosions
         objects.Tank.container = self.grounds
 
         self.hold_state = False  # режим пошаговой отладки
@@ -111,7 +114,7 @@ class Scene:
                 if _collide_circle(shot, left):
                     left.hit(shot)
                     shot.detonate_at(left)
-#                    self.shots.remove(shot)
+                    # self.shots.remove(shot)
         # после главного цикла - евенты могут меняться
         for obj in self.grounds:
             if obj._radar_detected_objs:
@@ -120,7 +123,7 @@ class Scene:
             obj._proceed_events()
             obj._game_step()
 
-        for obj in self.shots + self.exploisons:
+        for obj in self.shots + self.explosions:
             obj._game_step()
 
         if common._debug:
@@ -165,7 +168,7 @@ class Scene:
                 self._game_step()
                 # отсылаем новое состояние обьектов в UI
                 objects_state = {}
-                for obj in self.grounds + self.shots + self.exploisons:
+                for obj in self.grounds + self.shots + self.explosions:
                     objects_state[obj.id] = ObjectState(obj)
                 self.parent_conn.send(objects_state)
 
@@ -174,7 +177,7 @@ class Scene:
             cycle_time_rest = constants.game_step_min_time - cycle_time
             if cycle_time_rest > 0:
                 # о! есть время поспать... :)
-#                print "sleep for %.6f" % cycle_time_rest
+                # print "sleep for %.6f" % cycle_time_rest
                 time.sleep(cycle_time_rest)
 
         # ждем пока потомки помрут

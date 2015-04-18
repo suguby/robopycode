@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import math
 
 import constants
-from math import *
 
 
 def from_screen(coord):
@@ -23,7 +23,7 @@ def get_arctan(dy, dx):
     """
         Determine the angle in degrees for the twins
     """
-    out = atan2(dy, dx) / pi * 180
+    out = math.atan2(dy, dx) / math.pi * 180
     # Unlike atan(y/x), the signs of both x and y are considered.
     return normalise_angle(out)
 
@@ -32,7 +32,7 @@ def get_tangens(angle):
     """
         Determine the tangent of the angle in degrees
     """
-    return tan(angle / 180.0 * pi)
+    return math.tan(angle / 180.0 * math.pi)
 
 
 class Point():
@@ -105,7 +105,7 @@ class Point():
         """
             The distance to other points
         """
-        return sqrt((self.x - point2.x) ** 2 + (self.y - point2.y) ** 2)
+        return math.sqrt((self.x - point2.x) ** 2 + (self.y - point2.y) ** 2)
 
     def near(self, point2, radius=5):
         """
@@ -174,9 +174,9 @@ class Vector():
         elif arg1.__class__ == int or arg1.__class__ == float or \
              arg2.__class__ == int or arg2.__class__ == float:
             direction, module = arg1, arg2
-            direction_rad = (direction * pi) / 180
-            self.dx = cos(direction_rad) * module
-            self.dy = sin(direction_rad) * module
+            direction_rad = (direction * math.pi) / 180
+            self.dx = math.cos(direction_rad) * module
+            self.dy = math.sin(direction_rad) * module
             self.angle = normalise_angle(direction)
             self.module = module
         else:
@@ -201,7 +201,7 @@ class Vector():
         self._determine_angle()
 
     def _determine_module(self):
-        self.module = sqrt(self.dx ** 2 + self.dy ** 2)
+        self.module = math.sqrt(self.dx ** 2 + self.dy ** 2)
 
     def _determine_angle(self):
         self.angle = 0
@@ -211,7 +211,7 @@ class Vector():
             else:
                 a = 270
         else:
-            a = atan(self.dy / self.dx) * (180 / pi)
+            a = math.atan(self.dy / self.dx) * (180 / math.pi)
             if self.dx < 0:
                 a += 180
         self.angle = normalise_angle(a)

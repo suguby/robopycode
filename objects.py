@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from common import log, random_point
-from constants import tank_speed, tank_turn_speed, \
-    field_width, field_height, tank_gun_heat_after_fire, \
-    tank_max_armor, tank_armor_renewal_rate, shot_speed, shot_life, shot_power
-from events import EventHearbeat, EventStoppedAtTargetPoint, EventStopped, \
-    EventGunReloaded, EventBorn, EventTargetDestroyed, EventHit
-from geometry import Point, Vector, normalise_angle
-import user_interface
 from Queue import Queue
 from random import randint
+
+from common import log, random_point
+from constants import (tank_speed, tank_turn_speed,
+                       field_width, field_height, tank_gun_heat_after_fire,
+                       tank_max_armor, tank_armor_renewal_rate, shot_speed,
+                       shot_life, shot_power)
+from events import (EventHearbeat, EventStoppedAtTargetPoint, EventStopped,
+                    EventGunReloaded, EventBorn, EventTargetDestroyed, EventHit)
+from geometry import Point, Vector, normalise_angle
+import user_interface
 
 
 class GameObject():
