@@ -45,7 +45,7 @@ class Shot(GameObject):
     """
         The shell. Flies in a straight until it hits the target.
     """
-    _layer = 3
+    layer = 1
     radius = 4
     selectable = False
 
@@ -88,7 +88,7 @@ class Explosion(GameObject):
     """
     # TODO подумать куда отнести взрывы,
     # TODO ведь в игоровой механике они не участвуют
-    _layer = 3
+    layer = 0
     radius = 0  # collision detect
     defaultlife = 12
     animcycle = 3

@@ -2,6 +2,7 @@
 
 from robogame_engine import Scene
 from robogame_engine.geometry import Point, Vector
+from robogame_engine.scene import random_point
 from robogame_engine.theme import theme
 
 from robopycode.tank import Tank, StaticTarget, Target
@@ -100,10 +101,10 @@ class CooperativeTank(Tank):
     _min_armor = 50
     _min_distance_to_target = 150
     state = 'at_home'
-    retreat_point = Point(100, theme.FIELD_HEIGHT - 100)
 
     def on_born(self):
         self.__class__.all_tanks.append(self)
+        self.retreat_point = Point(100, theme.FIELD_HEIGHT - 100)
         self.determine_state()
 
     def on_stop(self):
@@ -221,7 +222,7 @@ if __name__ == '__main__':
     battlezone = Battlezone(
         name="Battlezone: To the dust!",
         # field=(800, 600),
-        # theme_mod_path='dark_theme',
+        theme_mod_path='robopycode.themes.default',
     )
 
     count = 10
@@ -237,8 +238,8 @@ if __name__ == '__main__':
 
     second_pos = (theme.FIELD_WIDTH - 20, theme.FIELD_HEIGHT - 20)
     targets += [
-        StaticTarget(pos=(20, 20), angle=90),
-        StaticTarget(pos=second_pos, angle=-90, auto_fire=True)
+        StaticTarget(pos=(20, 20), direction=90),
+        StaticTarget(pos=second_pos, direction=-90, auto_fire=True)
     ]
 
     battlezone.go()

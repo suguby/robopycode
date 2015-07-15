@@ -15,9 +15,9 @@ class Tank(GameObject):
     radius = 32
     rotate_mode = ROTATE_TURNING
     selectable = True
+    layer = 2
 
     _sprite_filename = 'tank_blue.png'
-    _layer = 2
 
     def __init__(self, pos=None, direction=0):
         """
@@ -128,7 +128,7 @@ class StaticTarget(Tank):
     _sprite_filename = 'tank_red.png'
     selectable = False  # обьект нельзя выделить мышкой
 
-    def __init__(self, pos=None, direction=0.0, auto_fire=False):
+    def __init__(self, pos=None, direction=0, auto_fire=False):
         Tank.__init__(self, pos=pos, direction=direction)
         self.auto_fire = auto_fire
 
@@ -144,7 +144,7 @@ class Target(Tank):
     _sprite_filename = 'tank_red.png'
     _selectable = False  # обьект нельзя выделить мышкой
 
-    def __init__(self, pos=None, direction=0.0, auto_fire=False):
+    def __init__(self, pos=None, direction=0, auto_fire=False):
         Tank.__init__(self, pos=pos, direction=direction)
         self.auto_fire = auto_fire
 
