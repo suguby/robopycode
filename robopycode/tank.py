@@ -54,15 +54,13 @@ class Tank(GameObject):
                 self.explosion.vector.module
             )
             self.explosion.coord.add(expl_shift)
-            self.debug("after add explosion is %s", self.explosion)
+            self.debug("after add explosion is {explosion}")
 
     def fire(self):
         """
             Make shot.
         """
-        self.shot = self.gun.fire()
-        if self.shot:
-            self.shot.owner = self
+        self.gun.fire()
 
     def detonate(self):
         """
@@ -102,7 +100,7 @@ class Tank(GameObject):
         """
         pass
 
-    def on_collided_with(self, obj):
+    def on_collide_with(self, obj):
         """
             Event: contact with our tank shell
         """
@@ -160,6 +158,6 @@ class Target(Tank):
         if self.auto_fire:
             self.fire()
 
-    def on_collided_with(self, obj):
-        self.debug("collided_with %s", obj.id)
+    def on_collide_with(self, obj):
+        self.debug("on_collide_with {}".format(obj.id))
         self.move_at(target=random_point())

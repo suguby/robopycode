@@ -35,7 +35,7 @@ class Gun:
                 self.owner.course,
                 self.owner.radius // 2 + 12
             )
-            shot = Shot(pos=start_point, direction=self.owner.course)
+            shot = Shot(pos=start_point, direction=self.owner.course, owner=self.owner)
             self.heat = theme.TANK_GUN_HEAT_AFTER_FIRE
             self._state = 'reloading'
             return shot
@@ -49,14 +49,15 @@ class Shot(GameObject):
     radius = 4
     selectable = False
 
-    def __init__(self, pos, direction):
+    def __init__(self, pos, direction, owner):
         """
             Start a shell from a specified point in the direction of the
 
             Zapustit' snarjad iz ukazannoj tochki v ukazannom napravlenii
         """
-        GameObject.__init__(self, pos)
-        target = self.owner.coord.add(Vector(direction, 50000))
+        GameObject.__init__(self, pos, direction)
+        self.owner = owner
+        target = self.owner.coord + Vector(direction, 50000)
         self.move_at(target=target, speed=theme.SHOT_SPEED)
         self.life = theme.SHOT_LIFE
         self.power = theme.SHOT_POWER
@@ -74,10 +75,11 @@ class Shot(GameObject):
 
     def game_step(self):
         super(Shot, self).game_step()
-        self.debug('%s', self)
+        self.debug('{coord}')
         self.life -= 1
-        if not self.life or not self.is_moving():
-            self.owner.shot = None
+        if not self.life or not self.is_moving:
+            if self.owner:
+                self.owner.shot = None
             self._scene.remove_object(self)
         super(Shot, self).game_step()
 

@@ -18,13 +18,13 @@ class SimpleTank(Tank):
         self.move(to_obj_vector.angle + 180, speed=5)
 
     def to_search(self):
-        self.state = 'search'
+        self._state = 'search'
         self.target = None
         self.move_at(random_point())
 
     def to_hunt(self, target_candidate):
         self.target = target_candidate
-        self.state = 'hunt'
+        self._state = 'hunt'
         if self.distance_to(self.target) > 100:
             self.move_at(self.target)
         else:
@@ -46,10 +46,10 @@ class SimpleTank(Tank):
                 if distance_to_candidate < distance_to_target:
                     target_candidate = obj
                     distance_to_target = distance_to_candidate
-        if self.state == 'search':
+        if self._state == 'search':
             if target_candidate:
                 self.to_hunt(target_candidate)
-        elif self.state == 'hunt':
+        elif self._state == 'hunt':
             if target_candidate:
                 self.to_hunt(target_candidate)
             else:
@@ -68,7 +68,7 @@ class SimpleTank(Tank):
         self.to_search()
 
     def on_gun_reloaded(self):
-        if self.state == 'hunt':
+        if self._state == 'hunt':
             if self.target and self.target.armor > 0:
                 self.fire()
             else:
@@ -78,15 +78,14 @@ class SimpleTank(Tank):
         self.to_search()
 
     def on_collided_with(self, obj):
-        self.debug("collided_with state %s", self.state)
-        if self.state == 'search':
+        self.debug("collided_with, state {_state}")
+        if self._state == 'search':
             self.make_decision(objects=[obj])
 
     def on_radar_detect(self, objects):
         for obj in objects:
-            self.debug("in radar obj with armor %s", obj.armor)
-        self.debug("in_tank_radar_range state %s target",
-            self.state, self.target)
+            self.debug("in radar obj with armor {}".format(obj.armor))
+        self.debug("in_tank_radar_range state {_state} target {target}")
         self.make_decision(objects)
 
     def hearbeat(self):
@@ -100,7 +99,7 @@ class CooperativeTank(Tank):
     target = None
     _min_armor = 50
     _min_distance_to_target = 150
-    state = 'at_home'
+    _state = 'at_home'
 
     def on_born(self):
         self.__class__.all_tanks.append(self)
@@ -143,23 +142,23 @@ class CooperativeTank(Tank):
 
     def follow_target(self, with_move=True):
         if self.is_near_target():
-            self.debug("near_target - turned to %s" % self.target)
+            self.debug("near_target - turned to {target}")
             self.turn_to(self.target)
             self.fire()
-            self.state = 'hunt'
+            self._state = 'hunt'
         elif with_move:
             if self.target:
                 self.debug("target far away - move to")
                 self.move_at(self.target)
-                self.state = 'folow_target'
+                self._state = 'folow_target'
             else:
                 self.debug("no target - random")
-                self.state = 'search'
+                self._state = 'search'
                 self.move_at(random_point())
         else:
             self.debug("target far away and no move - dancing")
             self.turn_to(self.course + 90)
-            self.state = 'search'
+            self._state = 'search'
 
     def is_at_home(self):
         return self.distance_to(self.retreat_point) < 50 and self.armor < 90
@@ -210,7 +209,7 @@ class CooperativeTank(Tank):
 
 
 class Battlezone(Scene):
-    check_collisions = False
+    check_collisions = True
     _FLOWER_JITTER = 0.7
     _HONEY_SPEED_FACTOR = 0.02
     __beehives = []
