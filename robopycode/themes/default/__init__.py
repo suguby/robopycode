@@ -29,4 +29,4 @@ SHOT_POWER = 10
 SHOT_SPEED = 10
 SHOT_LIFE = 60  # in game ticks
 
-
+# LOGLEVEL = 'INFO'
