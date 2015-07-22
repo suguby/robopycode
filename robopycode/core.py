@@ -30,12 +30,13 @@ class Gun:
         """
         if self._state == 'loaded':
             start_point = Point(
-                self.owner.coord
-            ) + Vector(
-                self.owner.course,
-                self.owner.radius // 2 + 12
+                self.owner.coord.x,
+                self.owner.coord.y,
+            ) + Vector.from_direction(
+                direction=self.owner.direction,
+                module=self.owner.radius // 2 + 12
             )
-            shot = Shot(pos=start_point, direction=self.owner.course, owner=self.owner)
+            shot = Shot(pos=start_point, direction=self.owner.direction, owner=self.owner)
             self.heat = theme.TANK_GUN_HEAT_AFTER_FIRE
             self._state = 'reloading'
             return shot
@@ -57,7 +58,7 @@ class Shot(GameObject):
         """
         GameObject.__init__(self, pos, direction)
         self.owner = owner
-        target = self.owner.coord + Vector(direction, 50000)
+        target = self.owner.coord + Vector.from_direction(direction, module=50000)
         self.move_at(target=target, speed=theme.SHOT_SPEED)
         self.life = theme.SHOT_LIFE
         self.power = theme.SHOT_POWER
@@ -99,8 +100,8 @@ class Explosion(GameObject):
 
     def __init__(self, explosion_coord, hitted_obj):
         super(Explosion, self).__init__(pos=explosion_coord)
-        self.vector = Vector(hitted_obj.coord, explosion_coord)
-        self.vector.angle -= hitted_obj.course  # смещение при отображении
+        self.vector = Vector.from_points(hitted_obj.coord, explosion_coord)
+        self.vector.rotate(-hitted_obj.direction)  # смещение при отображении
         self.owner = hitted_obj
         self.owner.explosion = self
         self.owner._update_explosion()

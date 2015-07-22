@@ -49,11 +49,11 @@ class Tank(GameObject):
         """
         if self.explosion:
             self.explosion.coord = Point(self.coord)
-            expl_shift = Vector(
-                self.course + self.explosion.vector.angle,
-                self.explosion.vector.module
+            expl_shift = Vector.from_direction(
+                direction=self.direction + self.explosion.vector.angle,
+                module=self.explosion.vector.module
             )
-            self.explosion.coord.add(expl_shift)
+            self.explosion.coord += expl_shift
             self.debug("after add explosion is {explosion}")
 
     def fire(self):

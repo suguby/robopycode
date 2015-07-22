@@ -11,10 +11,10 @@ from robopycode.tank import Tank, StaticTarget, Target
 class SimpleTank(Tank):
 
     def turn_around(self):
-        self.turn_to(self.course + 180)
+        self.turn_to(self.direction + 180)
 
     def run_away(self, obj):
-        to_obj_vector = Vector(self, obj)
+        to_obj_vector = Vector.from_points(self.coord, obj.coord)
         self.move(to_obj_vector.angle + 180, speed=5)
 
     def to_search(self):
@@ -157,7 +157,7 @@ class CooperativeTank(Tank):
                 self.move_at(random_point())
         else:
             self.debug("target far away and no move - dancing")
-            self.turn_to(self.course + 90)
+            self.turn_to(self.direction + 90)
             self._state = 'search'
 
     def is_at_home(self):
@@ -235,9 +235,9 @@ if __name__ == '__main__':
     targets = [Target(pos=deploy3) for i in range(4)]
     targets += [Target(pos=deploy3, auto_fire=True) for i in range(4)]
 
-    second_pos = (theme.FIELD_WIDTH - 20, theme.FIELD_HEIGHT - 20)
+    second_pos = Point(theme.FIELD_WIDTH - 20, theme.FIELD_HEIGHT - 20)
     targets += [
-        StaticTarget(pos=(20, 20), direction=90),
+        StaticTarget(pos=Point(20, 20), direction=90),
         StaticTarget(pos=second_pos, direction=-90, auto_fire=True)
     ]
 
