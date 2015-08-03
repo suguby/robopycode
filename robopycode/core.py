@@ -64,6 +64,17 @@ class Shot(GameObject):
         self.power = theme.SHOT_POWER
         self.owner = None
 
+    def on_collide_with(self, obj):
+        """
+            Event: contact with our tank shell
+        """
+        if obj is self.owner:
+            return
+        from robopycode.tank import Tank
+        if isinstance(obj, Tank):
+            obj.hit(shot=self)
+            self.detonate_at(obj)
+
     def detonate_at(self, obj):
         """
             Explosion!
@@ -82,7 +93,6 @@ class Shot(GameObject):
             if self.owner:
                 self.owner.shot = None
             self._scene.remove_object(self)
-        super(Shot, self).game_step()
 
 
 class Explosion(GameObject):

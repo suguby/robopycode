@@ -48,9 +48,9 @@ class Tank(GameObject):
             Renew exploison at the armor - it must moving with as
         """
         if self.explosion:
-            self.explosion.coord = Point(self.coord)
+            self.explosion.coord = Point.from_point(self.coord)
             expl_shift = Vector.from_direction(
-                direction=self.direction + self.explosion.vector.angle,
+                direction=self.direction + self.explosion.vector.direction,
                 module=self.explosion.vector.module
             )
             self.explosion.coord += expl_shift
