@@ -36,9 +36,19 @@ class Tank(GameObject):
     def gun_heat(self):
         return self.gun.heat
 
+    @property
+    def meter_1(self):
+        return float(self._armor) / theme.TANK_MAX_ARMOR
+
+    @property
+    def meter_2(self):
+        return float(self.gun.heat) / theme.TANK_GUN_HEAT_AFTER_FIRE
+
     def game_step(self):
         if self._armor < theme.TANK_MAX_ARMOR:
             self._armor += theme.TANK_ARMOR_RENEWAL_RATE
+        if self._armor > theme.TANK_MAX_ARMOR:
+            self._armor = theme.TANK_MAX_ARMOR
         self.gun.game_step()
         super(Tank, self).game_step()
         self._update_explosion()

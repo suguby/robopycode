@@ -53,8 +53,6 @@ class Shot(GameObject):
     def __init__(self, pos, direction, owner):
         """
             Start a shell from a specified point in the direction of the
-
-            Zapustit' snarjad iz ukazannoj tochki v ukazannom napravlenii
         """
         GameObject.__init__(self, pos, direction)
         self.owner = owner
@@ -62,7 +60,6 @@ class Shot(GameObject):
         self.move_at(target=target, speed=theme.SHOT_SPEED)
         self.life = theme.SHOT_LIFE
         self.power = theme.SHOT_POWER
-        self.owner = None
 
     def on_collide_with(self, obj):
         """
@@ -99,8 +96,6 @@ class Explosion(GameObject):
     """
         The explosion of the tank.
     """
-    # TODO подумать куда отнести взрывы,
-    # TODO ведь в игоровой механике они не участвуют
     layer = 0
     radius = 0  # collision detect
     defaultlife = 12
