@@ -13,10 +13,6 @@ class SimpleTank(Tank):
     def turn_around(self):
         self.turn_to(self.direction + 180)
 
-    def run_away(self, obj):
-        to_obj_vector = Vector.from_points(self.coord, obj.coord)
-        self.move(to_obj_vector.angle + 180, speed=5)
-
     def to_search(self):
         self._state = 'search'
         self.target = None
@@ -77,7 +73,7 @@ class SimpleTank(Tank):
     def on_target_destroyed(self):
         self.to_search()
 
-    def on_collided_with(self, obj):
+    def on_collide_with(self, obj):
         self.debug("collided_with, state {_state}")
         if self._state == 'search':
             self.make_decision(objects=[obj])

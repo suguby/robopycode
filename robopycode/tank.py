@@ -47,8 +47,8 @@ class Tank(GameObject):
     def game_step(self):
         if self._armor < theme.TANK_MAX_ARMOR:
             self._armor += theme.TANK_ARMOR_RENEWAL_RATE
-        if self._armor > theme.TANK_MAX_ARMOR:
-            self._armor = theme.TANK_MAX_ARMOR
+            if self._armor > theme.TANK_MAX_ARMOR:
+                self._armor = theme.TANK_MAX_ARMOR
         self.gun.game_step()
         super(Tank, self).game_step()
         self._update_explosion()
