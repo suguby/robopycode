@@ -11,26 +11,33 @@ from robopycode.tank import Tank, StaticTarget, Target
 class SimpleTank(Tank):
 
     def turn_around(self):
+        self.error("turn_around")
         self.turn_to(self.direction + 180)
 
     def to_search(self):
+        self.error("to_search")
         self._state = 'search'
         self.target = None
-        self.move_at(random_point())
+        point = random_point()
+        self.move_at(point)
 
     def to_hunt(self, target_candidate):
+        self.error("to_hunt")
         self.target = target_candidate
         self._state = 'hunt'
         if self.distance_to(self.target) > 100:
             self.move_at(self.target)
+            self.error("move_at {target}", target=self.target)
         else:
             self.turn_to(self.target)
+            self.error("turn_to {target}", target=self.target)
         self.fire()
 
     def make_decision(self, objects=None):
         """
             Принять решение, охотиться ли за обьектами
         """
+        self.error("make_decision {objects}", objects=objects)
         target_candidate = None
         if self.target:
             distance_to_target = self.distance_to(self.target)
@@ -60,14 +67,15 @@ class SimpleTank(Tank):
     def on_stop(self):
         self.to_search()
 
-    def stopped_at_target(self):
+    def on_stop_at_target(self, obj):
         self.to_search()
 
     def on_gun_reloaded(self):
         if self._state == 'hunt':
-            if self.target and self.target.armor > 0:
-                self.fire()
-            else:
+            try:
+                if self.target.armor > 0:
+                    self.fire()
+            except AttributeError:
                 self.to_search()
 
     def on_target_destroyed(self):
@@ -84,12 +92,9 @@ class SimpleTank(Tank):
         self.debug("in_tank_radar_range state {_state} target {target}")
         self.make_decision(objects)
 
-    def hearbeat(self):
-        self.debug("hearbeat")
-
 
 class CooperativeTank(Tank):
-    """Танк. Может ездить по экрану."""
+
     _sprite_filename = 'tank_green.png'
     all_tanks = []
     target = None
@@ -203,12 +208,8 @@ class CooperativeTank(Tank):
         return None
 
 
-
 class Battlezone(Scene):
     check_collisions = True
-    _FLOWER_JITTER = 0.7
-    _HONEY_SPEED_FACTOR = 0.02
-    __beehives = []
 
     def prepare(self):
         self._objects_holder = self
@@ -219,17 +220,19 @@ if __name__ == '__main__':
         # field=(800, 600),
         theme_mod_path='robopycode.themes.default',
     )
+    team_size = 1
 
     count = 10
     deploy1 = Point(theme.FIELD_WIDTH - 100, 100)
-    army_1 = [SimpleTank(pos=deploy1) for i in range(5)]
+    army_1 = [SimpleTank(pos=deploy1) for i in range(team_size)]
 
     deploy2 = Point(100, theme.FIELD_HEIGHT - 100)
-    army_2 = [CooperativeTank(pos=deploy2) for i in range(5)]
+    army_2 = [CooperativeTank(pos=deploy2) for i in range(team_size)]
 
     deploy3 = Point(100, 100)
-    targets = [Target(pos=deploy3) for i in range(4)]
-    targets += [Target(pos=deploy3, auto_fire=True) for i in range(4)]
+    targets_count = team_size // 2 if team_size >= 2 else 1
+    targets = [Target(pos=deploy3) for i in range(targets_count)]
+    targets += [Target(pos=deploy3, auto_fire=True) for i in range(targets_count)]
 
     second_pos = Point(theme.FIELD_WIDTH - 20, theme.FIELD_HEIGHT - 20)
     targets += [

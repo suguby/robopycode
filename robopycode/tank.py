@@ -124,7 +124,7 @@ class Tank(GameObject):
 
     def on_radar_detect(self, objects):
         """
-            Event: contact with our tank shell
+            Event: radar find some objects
         """
         pass
 
