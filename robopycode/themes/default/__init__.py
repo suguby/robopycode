@@ -4,7 +4,7 @@
 
 import os
 
-DEBUG = True
+DEBUG = False
 
 BACKGROUND_COLOR = (85, 107, 47)
 PICTURES_PATH = os.path.join(os.path.dirname(__file__))

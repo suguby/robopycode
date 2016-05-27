@@ -11,33 +11,33 @@ from robopycode.tank import Tank, StaticTarget, Target
 class SimpleTank(Tank):
 
     def turn_around(self):
-        self.error("turn_around")
+        self.debug("turn_around")
         self.turn_to(self.direction + 180)
 
     def to_search(self):
-        self.error("to_search")
+        self.debug("to_search")
         self._state = 'search'
         self.target = None
         point = random_point()
         self.move_at(point)
 
     def to_hunt(self, target_candidate):
-        self.error("to_hunt")
+        self.debug("to_hunt")
         self.target = target_candidate
         self._state = 'hunt'
         if self.distance_to(self.target) > 100:
             self.move_at(self.target)
-            self.error("move_at {target}", target=self.target)
+            self.debug("move_at {target}", target=self.target)
         else:
             self.turn_to(self.target)
-            self.error("turn_to {target}", target=self.target)
+            self.debug("turn_to {target}", target=self.target)
         self.fire()
 
     def make_decision(self, objects=None):
         """
             Принять решение, охотиться ли за обьектами
         """
-        self.error("make_decision {objects}", objects=objects)
+        self.debug("make_decision {objects}", objects=objects)
         target_candidate = None
         if self.target:
             distance_to_target = self.distance_to(self.target)
@@ -219,8 +219,9 @@ if __name__ == '__main__':
         name="Battlezone: To the dust!",
         # field=(800, 600),
         theme_mod_path='robopycode.themes.default',
+        speed=10,
     )
-    team_size = 1
+    team_size = 5
 
     count = 10
     deploy1 = Point(theme.FIELD_WIDTH - 100, 100)
@@ -230,7 +231,7 @@ if __name__ == '__main__':
     army_2 = [CooperativeTank(pos=deploy2) for i in range(team_size)]
 
     deploy3 = Point(100, 100)
-    targets_count = team_size // 2 if team_size >= 2 else 1
+    targets_count = 20
     targets = [Target(pos=deploy3) for i in range(targets_count)]
     targets += [Target(pos=deploy3, auto_fire=True) for i in range(targets_count)]
 
