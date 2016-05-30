@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from robogame_engine import Scene
-from robogame_engine.geometry import Point, Vector
+from robogame_engine.geometry import Point
 from robogame_engine.scene import random_point
 from robogame_engine.theme import theme
+from robopycode.core import Battlezone
 
-from robopycode.tank import Tank, StaticTarget, Target
+from robopycode.tank import Tank, Target
 
 
 class SimpleTank(Tank):
@@ -207,12 +207,6 @@ class CooperativeTank(Tank):
             return nearest_obj
         return None
 
-
-class Battlezone(Scene):
-    check_collisions = True
-
-    def prepare(self):
-        self._objects_holder = self
 
 if __name__ == '__main__':
     battlezone = Battlezone(

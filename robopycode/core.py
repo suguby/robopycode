@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from robogame_engine import GameObject
+from robogame_engine import GameObject, Scene
 from robogame_engine.geometry import Point, Vector
 from robogame_engine.theme import theme
 from robopycode.events import EventGunReloaded
+from robopycode.tank import Tank
 
 
 class Gun:
@@ -126,3 +127,15 @@ class SmallExplosion(Explosion):
     """
         The explosion of the shell.
     """
+
+
+class Battlezone(Scene):
+    check_collisions = True
+
+    def prepare(self):
+        self._objects_holder = self
+
+    def game_step(self):
+        super(Battlezone, self).game_step()
+        for obj in self.get_objects_by_type(Tank):
+            print obj
