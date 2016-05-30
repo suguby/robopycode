@@ -20,3 +20,10 @@ class EventHit(GameEvent):
         obj.on_hitted()
 
 
+class EventRadarDetect(GameEvent):
+
+    def handle(self, obj):
+        obj.on_radar_detect()
+
+
+

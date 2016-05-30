@@ -219,26 +219,25 @@ if __name__ == '__main__':
         name="Battlezone: To the dust!",
         # field=(800, 600),
         theme_mod_path='robopycode.themes.default',
-        speed=10,
+        # speed=4,
     )
-    team_size = 5
+    team_size = 1
 
-    count = 10
     deploy1 = Point(theme.FIELD_WIDTH - 100, 100)
     army_1 = [SimpleTank(pos=deploy1) for i in range(team_size)]
 
-    deploy2 = Point(100, theme.FIELD_HEIGHT - 100)
-    army_2 = [CooperativeTank(pos=deploy2) for i in range(team_size)]
-
+    # deploy2 = Point(100, theme.FIELD_HEIGHT - 100)
+    # army_2 = [CooperativeTank(pos=deploy2) for i in range(team_size)]
+    #
     deploy3 = Point(100, 100)
-    targets_count = 20
-    targets = [Target(pos=deploy3) for i in range(targets_count)]
-    targets += [Target(pos=deploy3, auto_fire=True) for i in range(targets_count)]
-
-    second_pos = Point(theme.FIELD_WIDTH - 20, theme.FIELD_HEIGHT - 20)
-    targets += [
-        StaticTarget(pos=Point(20, 20), direction=90),
-        StaticTarget(pos=second_pos, direction=-90, auto_fire=True)
-    ]
+    targets_count = 5
+    targets = [Target(pos=random_point()) for i in range(targets_count)]
+    # targets += [Target(pos=random_point(), auto_fire=True) for i in range(targets_count)]
+    #
+    # second_pos = Point(theme.FIELD_WIDTH - 20, theme.FIELD_HEIGHT - 20)
+    # targets += [
+    #     StaticTarget(pos=Point(20, 20), direction=90),
+    #     StaticTarget(pos=second_pos, direction=-90, auto_fire=True)
+    # ]
 
     battlezone.go()

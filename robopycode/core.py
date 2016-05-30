@@ -56,7 +56,7 @@ class Shot(GameObject):
         """
         GameObject.__init__(self, pos, direction)
         self.owner = owner
-        target = self.owner.coord + Vector.from_direction(direction, module=50000)
+        target = self.owner.coord + Vector.from_direction(direction, module=50000)  # far away...
         self.move_at(target=target, speed=theme.SHOT_SPEED)
         self.life = theme.SHOT_LIFE
         self.power = theme.SHOT_POWER

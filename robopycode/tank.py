@@ -137,7 +137,7 @@ class StaticTarget(Tank):
     selectable = False  # обьект нельзя выделить мышкой
 
     def __init__(self, pos=None, direction=0, auto_fire=False):
-        Tank.__init__(self, pos=pos, direction=direction)
+        super(StaticTarget, self).__init__(pos=pos, direction=direction)
         self.auto_fire = auto_fire
 
     def on_gun_reloaded(self):
@@ -153,7 +153,7 @@ class Target(Tank):
     _selectable = False  # обьект нельзя выделить мышкой
 
     def __init__(self, pos=None, direction=0, auto_fire=False):
-        Tank.__init__(self, pos=pos, direction=direction)
+        super(Target, self).__init__(pos=pos, direction=direction)
         self.auto_fire = auto_fire
 
     def on_born(self):
@@ -170,4 +170,7 @@ class Target(Tank):
 
     def on_collide_with(self, obj):
         self.debug("on_collide_with {}".format(obj.id))
+        self.move_at(target=random_point())
+
+    def on_stop_at_target(self, target):
         self.move_at(target=random_point())
