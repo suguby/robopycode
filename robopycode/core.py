@@ -2,8 +2,8 @@
 from robogame_engine import GameObject, Scene
 from robogame_engine.geometry import Point, Vector
 from robogame_engine.theme import theme
-from robopycode.events import EventGunReloaded
-from robopycode.tank import Tank
+from robopycode.events import EventGunReloaded, EventRadarDetect
+from robopycode.utils import in_radar_fork
 
 
 class Gun:
@@ -137,5 +137,25 @@ class Battlezone(Scene):
 
     def game_step(self):
         super(Battlezone, self).game_step()
-        for obj in self.get_objects_by_type(Tank):
-            print obj
+        from robopycode.tank import Tank
+        all_tanks = self.get_objects_by_type(Tank)
+        for tank in all_tanks:
+            tank.radar_detected = []
+        tanks = all_tanks[:]
+        while True:
+            left = tanks.pop()
+            if not tanks:
+                break
+            for right in tanks:
+                distance = left.distance_to(right)
+                if distance > theme.TANK_RADAR_RANGE:
+                    continue
+                if left.has_radar and in_radar_fork(left, right):
+                    left.radar_detected.append(right)
+                if right.has_radar and in_radar_fork(right, left):
+                    right.radar_detected.append(left)
+        for tank in all_tanks:
+            if tank.radar_detected:
+                event = EventRadarDetect(tank.radar_detected)
+                tank.add_event(event)
+

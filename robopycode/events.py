@@ -23,7 +23,7 @@ class EventHit(GameEvent):
 class EventRadarDetect(GameEvent):
 
     def handle(self, obj):
-        obj.on_radar_detect()
+        obj.on_radar_detect(self._event_objs)
 
 
 

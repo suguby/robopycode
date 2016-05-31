@@ -5,7 +5,7 @@ from robogame_engine.geometry import Vector, Point, normalise_angle, get_arctan
 from robogame_engine.theme import theme
 
 
-def _in_radar_fork(obj, target):
+def in_radar_fork(obj, target):
     """
         Is target in radar beam?
     """
@@ -23,8 +23,8 @@ def _in_radar_fork(obj, target):
     right_radar_angle = normalise_angle(obj.vector.direction - _half_tank_radar_angle)
 
     target_direction = get_arctan(dy, dx)
-    obj.debug("course %s dx %s dy %s", obj.course, dx, dy)
-    obj.debug("left_angle %s right_angle %s target_direction %s",
+    obj.debug("course {} dx {} dy {}}", obj.vector.direction, dx, dy)
+    obj.debug("left_angle {} right_angle {} target_direction {}",
               left_radar_angle, right_radar_angle, target_direction)
 
     if right_radar_angle < target_direction < left_radar_angle:
