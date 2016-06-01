@@ -148,7 +148,7 @@ class Battlezone(Scene):
                 break
             for right in tanks:
                 distance = left.distance_to(right)
-                if distance > theme.TANK_RADAR_RANGE:
+                if distance > theme.TANK_RADAR_RANGE + left.radius:
                     continue
                 if left.has_radar and in_radar_fork(left, right):
                     left.radar_detected.append(right)

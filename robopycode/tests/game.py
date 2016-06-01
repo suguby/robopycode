@@ -83,8 +83,7 @@ class SimpleTank(Tank):
 
     def on_collide_with(self, obj):
         self.debug("collided_with, state {_state}")
-        if self._state == 'search':
-            self.make_decision(objects=[obj])
+        self.make_decision(objects=[obj])
 
     def on_radar_detect(self, objects):
         for obj in objects:
@@ -217,12 +216,12 @@ if __name__ == '__main__':
     )
     team_size = 1
 
-    deploy1 = Point(theme.FIELD_WIDTH - 100, 100)
-    army_1 = [SimpleTank(pos=deploy1) for i in range(team_size)]
+    # deploy1 = Point(theme.FIELD_WIDTH - 100, 100)
+    # army_1 = [SimpleTank(pos=deploy1) for i in range(team_size)]
 
-    # deploy2 = Point(100, theme.FIELD_HEIGHT - 100)
-    # army_2 = [CooperativeTank(pos=deploy2) for i in range(team_size)]
-    #
+    deploy2 = Point(100, theme.FIELD_HEIGHT - 100)
+    army_2 = [CooperativeTank(pos=deploy2) for i in range(team_size)]
+
     deploy3 = Point(100, 100)
     targets_count = 5
     targets = [Target(pos=random_point()) for i in range(targets_count)]
