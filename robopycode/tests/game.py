@@ -212,12 +212,12 @@ if __name__ == '__main__':
         name="Battlezone: To the dust!",
         # field=(800, 600),
         theme_mod_path='robopycode.themes.default',
-        # speed=4,
+        speed=5,
     )
-    team_size = 1
+    team_size = 10
 
-    # deploy1 = Point(theme.FIELD_WIDTH - 100, 100)
-    # army_1 = [SimpleTank(pos=deploy1) for i in range(team_size)]
+    deploy1 = Point(theme.FIELD_WIDTH - 100, 100)
+    army_1 = [SimpleTank(pos=deploy1) for i in range(team_size)]
 
     deploy2 = Point(100, theme.FIELD_HEIGHT - 100)
     army_2 = [CooperativeTank(pos=deploy2) for i in range(team_size)]
